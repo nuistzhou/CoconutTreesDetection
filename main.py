@@ -11,13 +11,22 @@ class MyApp(QtGui.QMainWindow, Ui_MainWindow):
         self.btnOpenImage.clicked.connect(self.loadImage)
 
 
+
     def loadImage(self):
 
         fileImage = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
                                                       '', "Image files (*.tif *.png *.jpg)")
+
         if len(fileImage) !=0 :
-            self.lblImage.setPixmap(QtGui.QPixmap(fileImage))
-            self.lblImage.show()
+            pixMap = QtGui.QPixmap(fileImage)
+            imageItem = QtGui.QGraphicsPixmapItem(pixMap)
+            imageScene = QtGui.QGraphicsScene()
+            self.graphicsViewDisplay = self.graphicsViewDisplay(imageScene)
+            imageScene.addItem(imageItem)
+            self.graphicsViewDisplay.fitInView(imageItem)
+            self.graphicsViewDisplay.show()
+
+
 
 
 if __name__ == "__main__":
