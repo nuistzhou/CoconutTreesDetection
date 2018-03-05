@@ -17,6 +17,7 @@ class MyApp(QtGui.QMainWindow, Ui_MainWindow):
                                                       'c:\\', "Image files (*.tif *.png *.jpg)")
         self.lblImage.setPixmap(QtGui.QPixmap(fileImage))
         self.lblImage.show()
+        print 111
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
