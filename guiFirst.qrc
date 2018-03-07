@@ -1,9 +1,0 @@
-<RCC>
-  <qresource prefix="icons">
-    <file>icon/add.png</file>
-    <file>icon/delete.png</file>
-    <file>icon/guiAnnotate.py</file>
-    <file>icon/openFile.ico</file>
-    <file>icon/saveFile.png</file>
-  </qresource>
-</RCC>
