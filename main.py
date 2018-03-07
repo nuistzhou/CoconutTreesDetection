@@ -1,5 +1,5 @@
 import sys
-from PyQt4 import QtCore, QtGui, uic
+from PyQt5 import QtCore, QtGui, uic
 from guiFirst import *
 
 
