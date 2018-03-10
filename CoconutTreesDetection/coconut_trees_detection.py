@@ -20,10 +20,10 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
-from PyQt4.QtGui import QAction, QIcon
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
+from PyQt5.QtGui import QAction, QIcon
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from qgis.gui import *
 from qgis.core import *
 
@@ -188,7 +188,7 @@ class CoconutTreesDetection:
 
     def loadAnnotationFile(self):
         QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Loading")
-        
+
     #--------------------------------------------------------------------------
 
     def onClosePlugin(self):
