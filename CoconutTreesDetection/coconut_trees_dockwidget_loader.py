@@ -5,9 +5,9 @@
                                  A QGIS plugin
  Active classification description
                              -------------------
-        begin                : 2014-05-28
-        copyright            : (C) 2014 by John Edgar Vargas
-        email                : jvargasmu@gmail.com
+        begin                : 2018-03-07
+        copyright            : (C) 2018 by Ping Zhou
+        email                : nuistzhou@gmail.com
  ***************************************************************************/
 
 /***************************************************************************
@@ -20,9 +20,9 @@
  ***************************************************************************/
 """
 
-from PyQt5 import QtCore, QtGui
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+from PyQt4 import QtCore, QtGui
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 from qgis.core import *
 from qgis.gui import *
 from coconut_trees_detection_dockwidget_base import Ui_DockWidget
