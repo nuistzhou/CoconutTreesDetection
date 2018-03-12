@@ -21,7 +21,8 @@
  ***************************************************************************/
 """
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
-from PyQt4.QtGui import QAction, QIcon
+from PyQt4.QtGui import QAction, QIcon, QFileDialog
+from qgis.gui import *
 # Initialize Qt resources from file resources.py
 import resources
 
@@ -72,6 +73,9 @@ class CoconutTreesDetection:
 
         self.pluginIsActive = False
         self.dockwidget = None
+
+
+
 
 
     # noinspection PyMethodMayBeStatic
@@ -230,4 +234,9 @@ class CoconutTreesDetection:
             # TODO: fix to allow choice of dock location
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
+
+    def loadAnnotationFile(self):
+        """Load annotation file"""
+
+        annotationFile = QFileDialog.getOpenFileName(self, 'Open file', '', "*.txt")
 
