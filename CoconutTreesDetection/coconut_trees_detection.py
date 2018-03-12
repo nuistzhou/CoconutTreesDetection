@@ -20,14 +20,18 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
-from PyQt4.QtGui import QAction, QIcon, QFileDialog
+from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
+from PyQt5.QtGui import QAction, QIcon
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from qgis.gui import *
+from qgis.core import *
+
 # Initialize Qt resources from file resources.py
 import resources
 
 # Import the code for the DockWidget
-from coconut_trees_detection_dockwidget import CoconutTreesDetectionDockWidget
+from coconut_trees_dockwidget_loader import DockWidget
 import os.path
 
 
@@ -47,6 +51,11 @@ class CoconutTreesDetection:
 
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
+
+        self.dockWidgetAnnotation = DockWidget(self.iface.mainWindow(), self.iface)
+
+        self.uiDockWidgetAnnotation = self.dockWidgetAnnotation.ui
+
 
         # initialize locale
         locale = QSettings().value('locale/userLocale')[0:2]
@@ -73,9 +82,6 @@ class CoconutTreesDetection:
 
         self.pluginIsActive = False
         self.dockwidget = None
-
-
-
 
 
     # noinspection PyMethodMayBeStatic
@@ -170,13 +176,18 @@ class CoconutTreesDetection:
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
-
+        self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockWidgetAnnotation)
         icon_path = ':/plugins/CoconutTreesDetection/icon.png'
         self.add_action(
             icon_path,
             text=self.tr(u'coconutTreesDetection'),
             callback=self.run,
             parent=self.iface.mainWindow())
+
+        self.uiDockWidgetAnnotation.btnLoadAnnotationFile.clicked.connect(self.loadAnnotationFile)
+
+    def loadAnnotationFile(self):
+        QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Loading")
 
     #--------------------------------------------------------------------------
 
@@ -214,8 +225,9 @@ class CoconutTreesDetection:
 
     def run(self):
         """Run method that loads and starts the plugin"""
+        self.dockWidgetAnnotation.show()
 
-        if not self.pluginIsActive:
+        """if not self.pluginIsActive:
             self.pluginIsActive = True
 
             #print "** STARTING CoconutTreesDetection"
@@ -225,7 +237,7 @@ class CoconutTreesDetection:
             #    removed on close (see self.onClosePlugin method)
             if self.dockwidget == None:
                 # Create the dockwidget (after translation) and keep reference
-                self.dockwidget = CoconutTreesDetectionDockWidget()
+                #self.dockwidget = CoconutTreesDetectionDockWidget()
 
             # connect to provide cleanup on closing of dockwidget
             self.dockwidget.closingPlugin.connect(self.onClosePlugin)
@@ -234,9 +246,4 @@ class CoconutTreesDetection:
             # TODO: fix to allow choice of dock location
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
-
-    def loadAnnotationFile(self):
-        """Load annotation file"""
-
-        annotationFile = QFileDialog.getOpenFileName(self, 'Open file', '', "*.txt")
-
+"""
