@@ -40,6 +40,12 @@ class Ui_DockWidget(object):
         self.btnSaveAnnotationFile = QtGui.QPushButton(self.dockWidgetContents)
         self.btnSaveAnnotationFile.setGeometry(QtCore.QRect(180, 50, 110, 32))
         self.btnSaveAnnotationFile.setObjectName(_fromUtf8("btnSaveAnnotationFile"))
+
+
+        # #-----------widget test for accessing mouse coordinates, remove later
+        # self.textMouseCoords = QtGui.QPlainTextEdit(self.dockWidgetContents)
+        # self.textMouseCoords.setGeometry(QtCore.QRect(50, 170, 110, 32))
+
         DockWidget.setWidget(self.dockWidgetContents)
 
         self.retranslateUi(DockWidget)
