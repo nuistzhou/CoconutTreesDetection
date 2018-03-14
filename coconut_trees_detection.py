@@ -53,9 +53,7 @@ class CoconutTreesDetection:
         # Save reference to the QGIS interface
         self.iface = iface
         self.canvas = self.iface.mapCanvas()
-        self.layer = self.iface.activeLayer()
-        self.initConfigFile()
-        self.config = config.Config
+
 
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
@@ -194,20 +192,32 @@ class CoconutTreesDetection:
             callback=self.run,
             parent=self.iface.mainWindow())
 
+        self.layer = self.iface.activeLayer()
+        self.initConfigFile()
+        self.config = config.Config
 
 
         self.uiDockWidgetAnnotation.btnLoadAnnotationFile.clicked.connect(self.loadAnnotationFile)
-
+        self.uiDockWidgetAnnotation.btnAddAnnotation.clicked.connect(self.addAnnotations)
         # Get coordinates of the clicked point
-        tool = ClickTool(self.config, self.canvas, self.layer)
-        self.iface.mapCanvas().setMapTool(tool)
+
 
 
     def loadAnnotationFile(self):
         QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Loading")
+
+    def addAnnotations(self):
+        """Call this function to get clicked point coordinates after pressed the 'Add' button"""
+        tool = ClickTool(self.config, self.canvas, self.layer)
+        self.canvas.setMapTool(tool)
+        print tool.point, 111
+        if tool.point != None:
+            print tool.point.x()
+        else:
+            "No annotations! "
         
     def initConfigFile(self):
-        if self.layer != None:
+        if self.layer:
             config.Config.pixSize = self.layer.rasterUnitsPerPixelX()
             config.Config.topLeftX = self.layer.extent().xMinimum()
             config.Config.topLeftY = self.layer.extent().yMinimum()
@@ -282,7 +292,7 @@ class ClickTool(QgsMapToolEmitPoint):
 
 
     def geoCoord2PixelPosition(self, point):
-        if (self.config.pixSize == 1):
+        if (self.config.pixSizeX == 1 and self.config.pixSizeY == 1):
             return QgsPoint(int(point.x()), int(point.y()))
         else:
             pixPosX = int(round((point.x() - self.config.topLeftX) / self.config.pixSize))
@@ -293,7 +303,7 @@ class ClickTool(QgsMapToolEmitPoint):
     def canvasPressEvent(self, event):
         self.active_editing = True
         if event.button() == Qt.LeftButton:
-            self.point = self.toLayerCoordinates(self.layer, event.pos())
+            self.point = self.toMapCoordinates(self.layer, event.pos())
             self.point = self.geoCoord2PixelPosition(self.point)
         print self.point.x(), self.point.y()
 
