@@ -285,9 +285,9 @@ class ClickTool(QgsMapToolEmitPoint):
         if (self.config.pixSize == 1):
             return QgsPoint(int(point.x()), int(point.y()))
         else:
-            pixPosX = int(round((point.x() - self.config.topLtX) / self.config.pxlSz))
-            pixPosY = int(round((self.config.topLtY - point.y()) / self.config.pxlSz))
-            return QgsPoint(self.configure.topLtX + pixPosX * self.configure.pxlSz, self.configure.topLtY - pixPosY * self.configure.pxlSz)
+            pixPosX = int(round((point.x() - self.config.topLeftX) / self.config.pixSize))
+            pixPosY = int(round((self.config.topLeftY - point.y()) / self.config.pixSize))
+            return QgsPoint(self.config.topLeftX + pixPosX * self.config.pixSize, self.config.topLeftY - pixPosY * self.config.pixSize)
 
 
     def canvasPressEvent(self, event):
