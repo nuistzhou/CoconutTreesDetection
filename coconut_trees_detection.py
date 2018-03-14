@@ -207,10 +207,10 @@ class CoconutTreesDetection:
         QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Loading")
         
     def initConfigFile(self):
-        config.Config.pixSize = self.layer.rasterUnitsPerPixelX()
-        config.Config.topLeftX = self.layer.extent().xMinimum()
-        config.Config.topLeftY = self.layer.extent().yMinimum()
-      
+        if self.layer != None:
+            config.Config.pixSize = self.layer.rasterUnitsPerPixelX()
+            config.Config.topLeftX = self.layer.extent().xMinimum()
+            config.Config.topLeftY = self.layer.extent().yMinimum()
 
     #--------------------------------------------------------------------------
 
