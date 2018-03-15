@@ -20,6 +20,8 @@
  *                                                                         *
  ***************************************************************************/
 """
+import os
+import os.path
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt4.QtGui import QAction, QIcon
 from PyQt4.QtCore import *
@@ -27,8 +29,9 @@ from PyQt4.QtGui import *
 from qgis.gui import *
 from qgis.core import *
 
-#Import configuration variables
-import config
+
+from clickTool import *
+from config import Parameters
 
 
 # Initialize Qt resources from file resources.py
@@ -36,7 +39,7 @@ import resources
 
 # Import the code for the DockWidget
 from coconut_trees_dockwidget_loader import DockWidget
-import os.path
+
 
 
 class CoconutTreesDetection:
@@ -193,14 +196,13 @@ class CoconutTreesDetection:
             parent=self.iface.mainWindow())
 
         self.layer = self.iface.activeLayer()
-        self.initConfigFile()
-        self.config = config.Config
+
+        self.config = Parameters(self.layer)
+        self.config.readRasterConfig()
 
 
         self.uiDockWidgetAnnotation.btnLoadAnnotationFile.clicked.connect(self.loadAnnotationFile)
         self.uiDockWidgetAnnotation.btnAddAnnotation.clicked.connect(self.addAnnotations)
-        # Get coordinates of the clicked point
-
 
 
     def loadAnnotationFile(self):
@@ -208,19 +210,16 @@ class CoconutTreesDetection:
 
     def addAnnotations(self):
         """Call this function to get clicked point coordinates after pressed the 'Add' button"""
-        tool = ClickTool(self.config, self.canvas, self.layer)
-        self.canvas.setMapTool(tool)
-        print tool.point, 111
-        if tool.point != None:
-            print tool.point.x()
-        else:
-            "No annotations! "
-        
-    def initConfigFile(self):
-        if self.layer:
-            config.Config.pixSize = self.layer.rasterUnitsPerPixelX()
-            config.Config.topLeftX = self.layer.extent().xMinimum()
-            config.Config.topLeftY = self.layer.extent().yMinimum()
+        canvasClicked = ClickTool(self.config, self.canvas, self.layer)
+        self.canvas.setMapTool(canvasClicked)
+
+
+
+
+
+
+
+
 
     #--------------------------------------------------------------------------
 
@@ -281,61 +280,5 @@ class CoconutTreesDetection:
             self.dockwidget.show()
 """
 
-class ClickTool(QgsMapToolEmitPoint):
-    def __init__(self, config, canvas, layer):
-        self.config = config  #Application configuration variables
-        self.canvas = canvas
-        self.layer = layer
-        self.point = None
-        self.active_editing = False
-        QgsMapToolEmitPoint.__init__(self, self.canvas)
 
 
-    def geoCoord2PixelPosition(self, point):
-        if (self.config.pixSizeX == 1 and self.config.pixSizeY == 1):
-            return QgsPoint(int(point.x()), int(point.y()))
-        else:
-            pixPosX = int(round((point.x() - self.config.topLeftX) / self.config.pixSize))
-            pixPosY = int(round((self.config.topLeftY - point.y()) / self.config.pixSize))
-            return QgsPoint(self.config.topLeftX + pixPosX * self.config.pixSize, self.config.topLeftY - pixPosY * self.config.pixSize)
-
-
-    def canvasPressEvent(self, event):
-        self.active_editing = True
-        if event.button() == Qt.LeftButton:
-            self.point = self.toMapCoordinates(self.layer, event.pos())
-            self.point = self.geoCoord2PixelPosition(self.point)
-        print self.point.x(), self.point.y()
-
-    def showPolygon(self):
-
-        bounding_points = []
-        bounding_points.append(QgsPoint(self.point.x() - self.config.brush_size * self.config.pxlSz,
-                                   self.point.y() - (-self.config.brush_size * self.config.pxlSz)))
-        bounding_points.append(QgsPoint(self.point.x() + self.config.brush_size * self.config.pxlSz,
-                                   self.point.y() - (-self.config.brush_size * self.config.pxlSz)))
-        bounding_points.append(QgsPoint(self.point.x() + self.config.brush_size * self.config.pxlSz,
-                                   self.point.y() + (-self.config.brush_size * self.config.pxlSz)))
-        bounding_points.append(QgsPoint(self.point.x() - self.config.brush_size * self.config.pxlSz,
-                                   self.point.y() + (-self.config.brush_size * self.config.pxlSz)))
-
-        tmp_polygon = QgsGeometry.fromPolygon([bounding_points])
-        if (self.config.crbands.data[self.index_rb].polygon == None):
-            self.config.crbands.data[self.index_rb].polygon = tmp_polygon
-        else:
-            if self.config.crbands.data[self.index_rb].polygon.intersects(tmp_polygon):
-                self.config.crbands.data[self.index_rb].polygon = self.config.crbands.data[self.index_rb].polygon.combine(
-                    tmp_polygon)
-            else:
-                # create new marker if the new tmp_polygon does not have and intersection
-                # print "new disjoint marker"
-                self.combineIntersectingMarkers()
-                self.config.crbands.add_custom_rubber_band(self.cnvs, None, None, self.config.currentClass)
-                self.index_rb = self.config.crbands.size() - 1
-                self.config.crbands.data[self.index_rb].polygon = tmp_polygon
-
-        self.isEmittingPoint = True
-
-        # print "self.configure.crbands size {}".format(self.configure.crbands.size()) 
-        # print "showPolygon index_rb {}".format(self.index_rb)
-        self.config.crbands.update_rubber_band(self.index_rb)
