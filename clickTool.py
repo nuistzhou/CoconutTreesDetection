@@ -34,7 +34,7 @@ class ClickTool(QgsMapTool):
             self.point = self.canvas.getCoordinateTransform()
             self.point = self.point.toMapCoordinates(event.pos().x(), event.pos().y())
             self.point = self.geoCoord2PixelPosition(self.point)
-            self.pointArray.append((self.poin.x(), self.point.y()))
+            self.pointArray.append((self.point.x(), self.point.y()))
             print self.point.x(), self.point.y()
             self.showPolygon()
 
@@ -50,6 +50,8 @@ class ClickTool(QgsMapTool):
 
 
     def showPolygon(self):
+        """ Shown an boundinbox defined.
+        It would be nice to be designed as an size-adjustable polygon for user when annotating... """
         self.polygon.setBorderColor(QColor(255, 0, 0))
         self.polygon.setFillColor(QColor(0, 0, 0, 0))
         self.polygon.setLineStyle(Qt.DotLine)

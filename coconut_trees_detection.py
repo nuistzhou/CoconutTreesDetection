@@ -195,14 +195,23 @@ class CoconutTreesDetection:
             callback=self.run,
             parent=self.iface.mainWindow())
 
-        self.layer = self.iface.activeLayer()
+        self.layer = self.getLayerByName('rgb_image')
 
         self.config = Parameters(self.layer)
+
         self.config.readRasterConfig()
 
 
         self.uiDockWidgetAnnotation.btnLoadAnnotationFile.clicked.connect(self.loadAnnotationFile)
         self.uiDockWidgetAnnotation.btnAddAnnotation.clicked.connect(self.addAnnotations)
+
+    def getLayerByName(self, layer_name):
+        layer = None
+        for lyr in QgsMapLayerRegistry.instance().mapLayers().values():
+            if lyr.name() == layer_name:
+                layer = lyr
+                break
+        return layer
 
 
     def loadAnnotationFile(self):
