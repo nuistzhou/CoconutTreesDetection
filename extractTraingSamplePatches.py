@@ -3,7 +3,8 @@
 #from geo_utils import get_grid_area_size_from_bbox_lat_long
 from PyQt4.QtCore import *
 from qgis.core import *
-
+import gdal
+import numpy as np
 
 def getLayerByName(layer_name):
     layer=None
@@ -37,11 +38,35 @@ def getPointPixelCoordinates(points_layer_name, raster_layer_name):
         point_pixel_coords = geoCoord2PixelPosition(point_crs_coord, top_left_x, top_left_y, pixel_size_x, pixel_size_y)
         pixel_coords_array.append(point_pixel_coords)
     return pixel_coords_array
-    
-    
-    
-    
-    
-    
+def extractPatches(points_layer_name, raster_layer_name, patchSize) :
+
+    rgb_image_path = '/Users/nuistzhou/thesis/Kolovai-Trees-20180108/rgb_image.tif'
+    image = gdal.Open(rgb_image_path).ReadAsArray()
+    image = np.transpose(image, (1, 2, 0))
+    patchesMatrixes = []
+
+    extractedPatchesCentres =  getPointPixelCoordinates(points_layer_name, raster_layer_name)
+
+    for patch_center in extractedPatchesCentres:
+        tl_x = patch_center.x() - patchSize/2
+        tl_y = patch_center.y() - patchSize/2
+
+        patchMatrix = image[tl_x: tl_x + patchSize, tl_y:tl_y + patchSize]
+
+        patchesMatrixes.append(patchMatrix)
+
+    return patchesMatrixes
+
+
+        # bounding_points.append(QgsPoint(point.x() - config.boundingboxSize * config.pixSizeX,
+        #                                 point.y() - (-config.boundingboxSize * config.pixSizeY)))
+        # bounding_points.append(QgsPoint(point.x() + config.boundingboxSize * config.pixSizeX,
+        #                                 point.y() - (-config.boundingboxSize * config.pixSizeY)))
+        # bounding_points.append(QgsPoint(point.x() + config.boundingboxSize * config.pixSizeX,
+        #                                 point.y() + (-config.boundingboxSize * config.pixSizeY)))
+        # bounding_points.append(QgsPoint(point.x() - config.boundingboxSize * config.pixSizeX,
+        #                                 point.y() + (-config.boundingboxSize * config.pixSizeY)))
+        #
+        #
     
     
