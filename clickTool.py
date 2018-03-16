@@ -1,3 +1,4 @@
+import pickle
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt4.QtGui import QAction, QIcon
 from PyQt4.QtCore import *
@@ -16,6 +17,7 @@ class ClickTool(QgsMapTool):
         self.pointArray = list()
         self.point = None
         self.polygon = QgsRubberBand(self.canvas, True)
+        self.adding = False
         QgsMapTool.__init__(self, self.canvas)
 
     def geoCoord2PixelPosition(self, point):
@@ -30,7 +32,7 @@ class ClickTool(QgsMapTool):
 
     def canvasPressEvent(self, event):
 
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.LeftButton and self.adding == True:
             self.point = self.canvas.getCoordinateTransform()
             self.point = self.point.toMapCoordinates(event.pos().x(), event.pos().y())
             self.point = self.geoCoord2PixelPosition(self.point)
@@ -41,6 +43,7 @@ class ClickTool(QgsMapTool):
     def canvasDoubleClickEvent(self, QMouseEvent):
         """Try to deactivate the tool after doble clicking on the canvas
         Not finished yet..."""
+        self.adding = False
         self.deactivate()
 
     def removeRubberband(self):
@@ -67,23 +70,22 @@ class ClickTool(QgsMapTool):
                                         self.point.y() + (-self.config.boundingboxSize * self.config.pixSizeY)))
 
         self.polygon.setToGeometry(QgsGeometry.fromPolygon([bounding_points]), None)
+        self.addAnnotationsToDict(bounding_points)
 
-        # if (self.config.crbands.data[self.index_rb].polygon == None):
-        #     self.config.crbands.data[self.index_rb].polygon = tmp_polygon
-        # else:
-        #     if self.config.crbands.data[self.index_rb].polygon.intersects(tmp_polygon):
-        #         self.config.crbands.data[self.index_rb].polygon = self.config.crbands.data[self.index_rb].polygon.combine(
-        #             tmp_polygon)
-        #     else:
-        #         # create new marker if the new tmp_polygon does not have and intersection
-        #         # print "new disjoint marker"
-        #         self.combineIntersectingMarkers()
-        #         self.config.crbands.add_custom_rubber_band(self.cnvs, None, None, self.config.currentClass)
-        #         self.index_rb = self.config.crbands.size() - 1
-        #         self.config.crbands.data[self.index_rb].polygon = tmp_polygon
-        #
-        # self.isEmittingPoint = True
-        #
-        # # print "self.configure.crbands size {}".format(self.configure.crbands.size())
-        # # print "showPolygon index_rb {}".format(self.index_rb)
-        # self.config.crbands.update_rubber_band(self.index_rb)
+
+    def addAnnotationsToDict(self, pts_list):
+        """ Add every newly given annotation to a defined dictionary"""
+        annotation_dict = {1 : pts_list}
+        pickle_file_name = "annotations.pickle"
+        try:
+            pkl = pickle.load(open(pickle_file_name, "rb"))
+        except(OSError, IOError):
+            pickle.dump(annotation_dict, open(pickle_file_name, 'wb'))
+
+
+    def saveAnnotationDictToFile(self):
+        """ Save annotations to a pickle file"""
+
+
+
+        pass

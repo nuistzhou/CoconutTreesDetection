@@ -203,6 +203,8 @@ class CoconutTreesDetection:
 
 
         self.uiDockWidgetAnnotation.btnLoadAnnotationFile.clicked.connect(self.loadAnnotationFile)
+
+
         self.uiDockWidgetAnnotation.btnAddAnnotation.clicked.connect(self.addAnnotations)
 
     def getLayerByName(self, layer_name):
@@ -219,8 +221,10 @@ class CoconutTreesDetection:
 
     def addAnnotations(self):
         """Call this function to get clicked point coordinates after pressed the 'Add' button"""
+
         canvasClicked = ClickTool(self.config, self.canvas, self.layer)
         self.canvas.setMapTool(canvasClicked)
+        canvasClicked.adding = True
 
 
 
