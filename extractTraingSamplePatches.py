@@ -38,9 +38,9 @@ def getPointPixelCoordinates(points_layer_name, raster_layer_name):
         point_pixel_coords = geoCoord2PixelPosition(point_crs_coord, top_left_x, top_left_y, pixel_size_x, pixel_size_y)
         pixel_coords_array.append(point_pixel_coords)
     return pixel_coords_array
-def extractPatches(points_layer_name, raster_layer_name, patchSize) :
+def extractPatches(points_layer_name, raster_layer_name, patchSize):
 
-    rgb_image_path = '/Users/nuistzhou/thesis/Kolovai-Trees-20180108/rgb_image.tif'
+    rgb_image_path = '/media/sf_Thesis/Data/Kolovai-Trees-20180108/rgb_image.tif'
     image = gdal.Open(rgb_image_path).ReadAsArray()
     image = np.transpose(image, (1, 2, 0))
     patchesMatrixes = []
@@ -68,5 +68,5 @@ def extractPatches(points_layer_name, raster_layer_name, patchSize) :
         #                                 point.y() + (-config.boundingboxSize * config.pixSizeY)))
         #
         #
-    
-    
+
+extract_matrix = extractPatches('Kolovai-Trees-20180108_crs100000_clipped', 'rgb_image', 30)
