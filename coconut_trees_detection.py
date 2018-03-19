@@ -57,7 +57,6 @@ class CoconutTreesDetection:
         self.iface = iface
         self.canvas = self.iface.mapCanvas()
 
-
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
 
@@ -224,7 +223,6 @@ class CoconutTreesDetection:
 
         canvasClicked = ClickTool(self.config, self.canvas, self.layer)
         self.canvas.setMapTool(canvasClicked)
-        canvasClicked.adding = True
 
 
 
