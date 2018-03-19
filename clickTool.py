@@ -40,6 +40,8 @@ class ClickTool(QgsMapTool):
             print self.point.x(), self.point.y()
             self.showPolygon()
 
+
+
     def canvasDoubleClickEvent(self, QMouseEvent):
         """Try to deactivate the tool after doble clicking on the canvas
         Not finished yet..."""
