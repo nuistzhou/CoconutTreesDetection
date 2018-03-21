@@ -1,12 +1,14 @@
 #from geo_utils import get_lat_long_from_top_left_point_in_tile
 #from geo_utils import get_lat_long_from_bottom_right_point_in_tile
 #from geo_utils import get_grid_area_size_from_bbox_lat_long
+import os
 from PyQt4.QtCore import *
 from qgis.core import *
 import gdal
 import numpy as np
-from sklearn.feature_extraction import image
-from sklearn.feature_extraction.image import extract_patches_2d
+# from scipy.misc import imsave
+# from sklearn.feature_extraction import image
+# from sklearn.feature_extraction.image import extract_patches_2d
 
 def getLayerByName(layer_name):
     layer=None
@@ -62,12 +64,18 @@ def extractPatches(points_layer_name, raster_layer_name, patchSize) :
 
     return patchesMatrixes
 
-patchMatrix = extractPatches('coconutTrees', 'rgb_image', 30)
+# patchMatrix = extractPatches('coconutTrees', 'rgb_image', 30)
 
-def savePatchesAsPic(patchesMatrix):
-    rgb_image_path = '/Users/nuistzhou/thesis/Kolovai-Trees-20180108/rgb_image.tif'
-    image = gdal.Open(rgb_image_path)
-    for patches in patchMatrix:
+def savePatchesAsPic():
+    patchImageOutputDir = '/Users/nuistzhou/thesis/Kolovai-Trees-20180108/patchesNumpyArrays/'
+    # rgb_image_path = '/Users/nuistzhou/thesis/Kolovai-Trees-20180108/rgb_image.tif'
+    # image = gdal.Open(rgb_image_path)
+    patchesMatrix = extractPatches('coconutTrees', 'rgb_image', 90)
+    for i, patchMatrix in enumerate(patchesMatrix):
+        file_name = str(i) + '.npy'
+        imageOutputPath = os.path.join(patchImageOutputDir, file_name)
+        # imsave(imageOutputPath, patchMatrix)
+        np.save(imageOutputPath, patchMatrix)
 
-
+savePatchesAsPic()
 
