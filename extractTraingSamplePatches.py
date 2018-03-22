@@ -6,9 +6,7 @@ from PyQt4.QtCore import *
 from qgis.core import *
 import gdal
 import numpy as np
-# from scipy.misc import imsave
-# from sklearn.feature_extraction import image
-# from sklearn.feature_extraction.image import extract_patches_2d
+
 
 def getLayerByName(layer_name):
     layer=None
@@ -45,7 +43,7 @@ def getPointPixelCoordinates(points_layer_name, raster_layer_name):
 
 def extractPatches(points_layer_name, raster_layer_name, patchSize) :
 
-    rgb_image_path = '/Users/nuistzhou/thesis/Kolovai-Trees-20180108/rgb_image.tif'
+    rgb_image_path = '/media/sf_Thesis/Data/Kolovai-Trees-20180108/rgb_image.tif'
     image = gdal.Open(rgb_image_path).ReadAsArray()
     image = np.transpose(image, (1, 2, 0))
     image_height = float(image.shape[0])
@@ -64,10 +62,9 @@ def extractPatches(points_layer_name, raster_layer_name, patchSize) :
 
     return patchesMatrixes
 
-# patchMatrix = extractPatches('coconutTrees', 'rgb_image', 30)
 
 def savePatchesAsPic():
-    patchImageOutputDir = '/Users/nuistzhou/thesis/Kolovai-Trees-20180108/patchesNumpyArrays/'
+    patchImageOutputDir = '/media/sf_Thesis/Data/Kolovai-Trees-20180108/patchesNumpyArrays/'
     # rgb_image_path = '/Users/nuistzhou/thesis/Kolovai-Trees-20180108/rgb_image.tif'
     # image = gdal.Open(rgb_image_path)
     patchesMatrix = extractPatches('coconutTrees', 'rgb_image', 90)

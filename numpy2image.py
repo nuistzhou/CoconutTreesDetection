@@ -2,8 +2,8 @@ import os
 from PIL import Image
 import numpy as np
 
-inputDir = '/Users/nuistzhou/thesis/Kolovai-Trees-20180108/patchesNumpyArrays/'
-outputDir = '/Users/nuistzhou/thesis/Kolovai-Trees-20180108/patchImages/'
+inputDir = '/media/sf_Thesis/Data/Kolovai-Trees-20180108/patchesNumpyArrays/'
+outputDir = '/media/sf_Thesis/Data/Kolovai-Trees-20180108/patchImages/'
 list_filen_names = os.listdir(inputDir)
 for file_name in list_filen_names:
     path_file_name = os.path.join(inputDir, file_name)
