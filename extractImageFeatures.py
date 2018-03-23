@@ -1,7 +1,7 @@
 import os
 import cv2
 
-imagePath = "/media/sf_Thesis/Data/Kolovai-Trees-20180108/patchImages/"
+imagePath = "/Users/nuistzhou/thesis/Kolovai-Trees-20180108/patchImages/"
 imageFileName = "1.png"
 imageFilePath = os.path.join(imagePath, imageFileName)
 img = cv2.imread(imageFilePath)
