@@ -43,7 +43,7 @@ def getPointPixelCoordinates(points_layer_name, raster_layer_name):
 
 def extractPatches(points_layer_name, raster_layer_name, patchSize) :
 
-    rgb_image_path = '/Users/nuistzhou/thesis/Kolovai-Trees-20180108/rgb_image.tif'
+    rgb_image_path = '/media/sf_Thesis/Data/Kolovai-Trees-20180108/rgb_image.tif'
     image = gdal.Open(rgb_image_path).ReadAsArray()
     image = np.transpose(image, (1, 2, 0))
     image_height = float(image.shape[0])
@@ -64,7 +64,7 @@ def extractPatches(points_layer_name, raster_layer_name, patchSize) :
 
 
 def savePatchesAsPic(lowerOrUpper, trees, ptsLayer):
-    patchesDir = '/Users/nuistzhou/thesis/Kolovai-Trees-20180108/patchesNumpyArrays'
+    patchesDir = '/media/sf_Thesis/Data/Kolovai-Trees-20180108/patchesNumpyArrays'
     treePatchDir = patchesDir + '/' + str(lowerOrUpper) + '/' + trees + '/'
 
     # rgb_image_path = '/Users/nuistzhou/thesis/Kolovai-Trees-20180108/rgb_image.tif'
@@ -77,10 +77,10 @@ def savePatchesAsPic(lowerOrUpper, trees, ptsLayer):
         # imsave(imageOutputPath, patchMatrix)
         np.save(imageOutputPath, patchMatrix)
 
-# savePatchesAsPic('lower', 'coco', 'cocoTreesLowerLayer')
-# savePatchesAsPic('lower', 'non_coco', 'non_cocoTreesLowerLayer')
-# savePatchesAsPic('upper', 'coco', 'cocoTreesUpperLayer')
-# savePatchesAsPic('upper', 'non_coco', 'non_cocoTreesUpperLayer')
+savePatchesAsPic('lower', 'coco', 'cocoTreesLowerLayer')
+savePatchesAsPic('lower', 'non_coco', 'non_cocoTreesLowerLayer')
+savePatchesAsPic('upper', 'coco', 'cocoTreesUpperLayer')
+savePatchesAsPic('upper', 'non_coco', 'non_cocoTreesUpperLayer')
 
 
 
