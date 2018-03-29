@@ -5,7 +5,7 @@
 
 
 *26th - 29th Mar*
-1. Create the trees (coconut & non_coco) mask
+1. Create the trees (coconut & non_coco) mask--- *Done*
 2. Get random samples by using the trees mask
 3. After have all trees and non trees samples, try different feature
 descriptors ((SURF, SIFT, HOG, BoVW)) and classifiers (Random Forest,
