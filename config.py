@@ -1,6 +1,7 @@
 
 class Parameters:
 
+    data_path = "/Users/ping/thesis/data"
     def __init__(self, layer):
         self.layer = layer
         self.pixSizeX = None #Pixel size of X axis
