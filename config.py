@@ -1,7 +1,11 @@
+import os
 
 class Parameters:
+    # Define some dataset path to be easily used later
+    dataPath = "/Users/ping/thesis/data"
+    featureDescriptorPath = os.path.join(dataPath, "featureDescriptors")
+    mergedFeatureDescriptorPath = os.path.join(dataPath, "featureDescriptors/merged_features")
 
-    data_path = "/Users/ping/thesis/data"
     def __init__(self, layer):
         self.layer = layer
         self.pixSizeX = None #Pixel size of X axis

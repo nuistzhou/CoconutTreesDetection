@@ -45,17 +45,6 @@ python extractImageFeatures.py ~/patchImages/upper/non_coco/ sift ~/featureDescr
 python extractImageFeatures.py ~/patchImages/upper/coco/ surf ~/featureDescriptors/surf_upper_coco.npy
 python extractImageFeatures.py ~/patchImages/upper/non_coco/ surf ~/featureDescriptors/surf_upper_non_coco.npy
 
-python mergeFeatureFiles.py ~/featureDescriptors/hog_lower_non_coco.npy ~/featureDescriptorshog_lower_coco.npy ~/featureDescriptors/merged_features/hog_lower_features.npy ~/featureDescriptors/merged_features/hog_lower_labels.npy
-python mergeFeatureFiles.py ~/featureDescriptors/sift_lower_non_coco.npy ~/featureDescriptors/sift_lower_coco.npy ~/featureDescriptors/merged_features/sift_lower_features.npy ~/featureDescriptors/merged_features/sift_lower_labels.npy
-python mergeFeatureFiles.py ~/featureDescriptors/surf_lower_non_coco.npy ~/featureDescriptors/surf_lower_coco.npy ~/featureDescriptors/merged_features/surf_lower_features.npy ~/featureDescriptors/merged_features/surf_lower_labels.npy
-python mergeFeatureFiles.py ~/featureDescriptors/hog_upper_non_coco.npy ~/featureDescriptorshog_upper_coco.npy ~/featureDescriptors/merged_features/hog_upper_features.npy ~/featureDescriptors/merged_features/hog_upper_labels.npy
-python mergeFeatureFiles.py ~/featureDescriptors/sift_upper_non_coco.npy ~/featureDescriptors/sift_upper_coco.npy ~/featureDescriptors/merged_features/sift_upper_features.npy ~/featureDescriptors/merged_features/sift_upper_labels.npy
-python mergeFeatureFiles.py ~/featureDescriptors/surf_upper_non_coco.npy ~/featureDescriptors/surf_upper_coco.npy ~/featureDescriptors/merged_features/surf_upper_features.npy ~/featureDescriptors/merged_features/surf_upper_labels.npy
-
-
-
-
-
 """
 
 
@@ -63,6 +52,7 @@ def extract_descriptor_from_image(image, descriptor_type):
     y_center = image.shape[0] / 2
     x_center = image.shape[1] / 2
 
+    method_descriptor = None
     gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     if descriptor_type in ["sift", "surf"]:
         if descriptor_type == "sift":
@@ -91,8 +81,8 @@ def main(input_dir, descriptor_type, output_features_path):
     # descriptor_type = args.descriptor_type
     # output_features_path = args.output_features_path
     #----------------------------------
-    input_dir = os.path.join(Parameters.data_path, input_dir)
-    output_features_path = os.path.join(Parameters.data_path, output_features_path)
+    input_dir = os.path.join(Parameters.dataPath, input_dir)
+    output_features_path = os.path.join(Parameters.dataPath, output_features_path)
     filenames = os.listdir(input_dir)
     filenames.sort()
     feature_size = 128
