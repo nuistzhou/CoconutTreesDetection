@@ -13,6 +13,8 @@ from sklearn.metrics import confusion_matrix
 
 from sklearn.preprocessing import normalize
 
+from sklearn.metrics import f1_score
+from sklearn.metrics import precision_recall_fscore_support
 
 def svmRBF_grid_search(dataset, labels):
 	C_s = 10.0 ** np.arange(-1, 3)
@@ -130,6 +132,9 @@ def main():
 	time_sec = (time.clock() - time_ini)
 	print "time classification {}".format(time_sec)
 
+	precision, recall, fscore, support =  precision_recall_fscore_support(test_labels ,pred_test_labels)
+	print "Fscore {}".format(fscore[1])
+	
 	# compute overall accuracy 
 	acc_test = accuracy_score(test_labels, pred_test_labels)
 
@@ -144,6 +149,8 @@ def main():
 	
 	print "Num train samples {} ,  Overall Accuracy {}: ".format(num_train, acc_test)
 	
+
+
 
 if __name__ == '__main__':
 	main()
