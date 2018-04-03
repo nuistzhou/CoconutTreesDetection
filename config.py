@@ -5,6 +5,8 @@ class Parameters:
     dataPath = "/Users/ping/thesis/data"
     featureDescriptorPath = os.path.join(dataPath, "featureDescriptors")
     mergedFeatureDescriptorPath = os.path.join(dataPath, "featureDescriptors/merged_features")
+    performanceTestDir = os.path.join(dataPath, "performance_test")
+
 
     def __init__(self, layer):
         self.layer = layer
@@ -13,6 +15,8 @@ class Parameters:
         self.topLeftX = None #Geo coordinate X of the Top Left pixel
         self.topLeftY = None #Geo coordinate Y of the Top Left pixel
         self.boundingboxSize = 25
+
+
 
 
     def readRasterConfig(self):

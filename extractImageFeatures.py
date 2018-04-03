@@ -10,28 +10,6 @@ from config import Parameters
 rename filename
 ls *.png | awk 'BEGIN{ photo=1; }{ printf "mv \"%s\" %04d.png\n", $0, photo++ }' | bash
 """
-
-"""
-imagePath = "/Users/ping/thesis/data/patchImages/lower/coco"
-imageFileName = "1.png"
-imageFilePath = os.path.join(imagePath, imageFileName)
-img = cv2.imread(imageFilePath)
-
-
-# OpenCV  ---  SFIT
-
-sift = cv2.xfeatures2d.SIFT_create()
-featuresSIFT = sift.detectAndCompute(img, None)[1]  # Dimension of (175, 128)
-
-# OpenCV --- SURF
-surf = cv2.xfeatures2d.SURF_create()
-featuresSURF = surf.detectAndCompute(img, None)[1]  # Dimension of (31, 64)
-
-# # OpenCv --- HOG
-# hog = cv2.HOGDescriptor()
-# featuersHOG= hog.compute(img)
-"""
-
 """
 python extractImageFeatures.py ~/patchImages/lower/coco/ hog ~/featureDescriptors/hog_lower_coco.npy
 python extractImageFeatures.py ~/patchImages/lower/non_coco/ hog ~/featureDescriptors/hog_lower_non_coco.npy
@@ -71,17 +49,6 @@ def extract_descriptor_from_image(image, descriptor_type):
 
 
 def main(input_dir, descriptor_type, output_features_path):
-    #----------------input paras from command line
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("input_dir", type=str, help="Image filename (tif)")
-    # parser.add_argument("descriptor_type", type=str, help="Descriptor type")
-    # parser.add_argument("output_features_path", type=str, help="Output png file")
-    # args = parser.parse_args()
-    #
-    # input_dir = args.input_dir
-    # descriptor_type = args.descriptor_type
-    # output_features_path = args.output_features_path
-    #----------------------------------
     input_dir = os.path.join(Parameters.dataPath, input_dir)
     output_features_path = os.path.join(Parameters.dataPath, output_features_path)
     filenames = os.listdir(input_dir)
