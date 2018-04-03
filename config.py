@@ -1,5 +1,10 @@
+import os
 
 class Parameters:
+    # Define some dataset path to be easily used later
+    dataPath = "/Users/ping/thesis/data"
+    featureDescriptorPath = os.path.join(dataPath, "featureDescriptors")
+    mergedFeatureDescriptorPath = os.path.join(dataPath, "featureDescriptors/merged_features")
 
     def __init__(self, layer):
         self.layer = layer
