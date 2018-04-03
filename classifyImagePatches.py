@@ -43,14 +43,14 @@ def main():
 	args = parser.parse_args()
 
 	"""
-	python codebook.py ~/imagery/coco2_dataset/lower/all/ 200 random ~/imagery/coco2_dataset/random_codebook200.npy
-	python bovw.py ~/imagery/coco2_dataset/lower/all/ ~/imagery/coco2_dataset/random_codebook200.npy ~/imagery/coco2_dataset/bow_sift_lower_features.npy ~/imagery/coco2_dataset/bow_sift_lower_labels.npy
-	python bovw.py ~/imagery/coco2_dataset/upper/all/ ~/imagery/coco2_dataset/random_codebook200.npy ~/imagery/coco2_dataset/bow_sift_upper_features.npy ~/imagery/coco2_dataset/bow_sift_upper_labels.npy
-	python classifyImagePatches.py ~/imagery/coco2_dataset/bow_sift_lower_features.npy ~/imagery/coco2_dataset/bow_sift_lower_labels.npy ~/imagery/coco2_dataset/bow_sift_upper_features.npy ~/imagery/coco2_dataset/bow_sift_upper_labels.npy svm
 	
-	python classifyImagePatches.py ~/imagery/coco2_dataset/merged_features/hog_lower_features.npy ~/imagery/coco2_dataset/merged_features/hog_lower_labels.npy ~/imagery/coco2_dataset/merged_features/hog_upper_features.npy ~/imagery/coco2_dataset/merged_features/hog_upper_labels.npy svm
-	python classifyImagePatches.py ~/imagery/coco2_dataset/merged_features/surf_lower_features.npy ~/imagery/coco2_dataset/merged_features/surf_lower_labels.npy ~/imagery/coco2_dataset/merged_features/surf_upper_features.npy ~/imagery/coco2_dataset/merged_features/surf_upper_labels.npy svm
-	python classifyImagePatches.py ~/imagery/coco2_dataset/merged_features/sift_lower_features.npy ~/imagery/coco2_dataset/merged_features/sift_lower_labels.npy ~/imagery/coco2_dataset/merged_features/sift_upper_features.npy ~/imagery/coco2_dataset/merged_features/sift_upper_labels.npy svm
+	python classifyImagePatches.py /Users/ping/thesis/data/featureDescriptors/merged_features/hog_lower_features.npy /Users/ping/thesis/data/featureDescriptors/merged_features/hog_lower_labels.npy /Users/ping/thesis/data/featureDescriptors/merged_features/hog_upper_features.npy /Users/ping/thesis/data/featureDescriptors/merged_features/hog_upper_labels.npy svm
+	python classifyImagePatches.py /Users/ping/thesis/data/featureDescriptors/merged_features/sift_lower_features.npy /Users/ping/thesis/data/featureDescriptors/merged_features/sift_lower_labels.npy /Users/ping/thesis/data/featureDescriptors/merged_features/sift_upper_features.npy /Users/ping/thesis/data/featureDescriptors/merged_features/sift_upper_labels.npy svm
+	python classifyImagePatches.py /Users/ping/thesis/data/featureDescriptors/merged_features/surf_lower_features.npy /Users/ping/thesis/data/featureDescriptors/merged_features/surf_lower_labels.npy /Users/ping/thesis/data/featureDescriptors/merged_features/surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/merged_features/surf_upper_labels.npy svm
+	python classifyImagePatches.py /Users/ping/thesis/data/featureDescriptors/merged_features/hog_lower_features.npy /Users/ping/thesis/data/featureDescriptors/merged_features/hog_lower_labels.npy /Users/ping/thesis/data/featureDescriptors/merged_features/hog_upper_features.npy /Users/ping/thesis/data/featureDescriptors/merged_features/hog_upper_labels.npy linear_svm
+	python classifyImagePatches.py /Users/ping/thesis/data/featureDescriptors/merged_features/sift_lower_features.npy /Users/ping/thesis/data/featureDescriptors/merged_features/sift_lower_labels.npy /Users/ping/thesis/data/featureDescriptors/merged_features/sift_upper_features.npy /Users/ping/thesis/data/featureDescriptors/merged_features/sift_upper_labels.npy linear_svm
+	python classifyImagePatches.py /Users/ping/thesis/data/featureDescriptors/merged_features/surf_lower_features.npy /Users/ping/thesis/data/featureDescriptors/merged_features/surf_lower_labels.npy /Users/ping/thesis/data/featureDescriptors/merged_features/surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/merged_features/surf_upper_labels.npy linear_svm
+
 	"""
 
 	"""

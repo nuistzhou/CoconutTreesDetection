@@ -19,6 +19,7 @@ img = cv2.imread(imageFilePath)
 
 
 # OpenCV  ---  SFIT
+
 sift = cv2.xfeatures2d.SIFT_create()
 featuresSIFT = sift.detectAndCompute(img, None)[1]  # Dimension of (175, 128)
 
