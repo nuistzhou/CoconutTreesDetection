@@ -4,6 +4,7 @@ import sys
 import argparse
 import time
 import numpy as np
+
 from sklearn import svm
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import GridSearchCV
@@ -134,7 +135,7 @@ def main():
 
 	precision, recall, fscore, support =  precision_recall_fscore_support(test_labels ,pred_test_labels)
 	print "Fscore {}".format(fscore[1])
-	
+
 	# compute overall accuracy 
 	acc_test = accuracy_score(test_labels, pred_test_labels)
 
