@@ -5,7 +5,7 @@ import numpy as np
 cocoTreesUpperLayer = "cocoTreesUpperLayer"
 non_cocoTreesUpperLayer = "non_cocoTreesUpperLayer"
 cocoTreesLowerLayer = "cocoTreesLowerLayer"
-non_cocoTreesLowerLayer = "non_cocoTreesUpperLayer"
+non_cocoTreesLowerLayer = "non_cocoTreesLowerLayer"
 
 rgbImgRaster = "rgb_image"
 maskPatchSize = 90 * 2  # Double patch size to avoid overlapping between patch samples
@@ -79,11 +79,11 @@ for cocoTreesCoords in lower_coco_coords_array:
     tl_x = max(tl_x, 0)
     tl_y = max(tl_y, 0)
     br_x = min(br_x, image_width - 1)
-    br_y = min(br_y, image_height - 1)
+    br_y = min(br_y, image_height -verticalHalf - 1)
 
     maskMatrixLower[tl_y: br_y + 1, tl_x: br_x + 1] = 1  # Fill the box with value 1 as a mask
 
-# non-coconut trees
+#non-coconut trees
 for non_cocoTreesCoords in lower_non_coco_coords_array:
     tl_x = int(non_cocoTreesCoords.x() - maskPatchSize / 2)
     tl_y = int(non_cocoTreesCoords.y() - verticalHalf - maskPatchSize / 2)
@@ -95,9 +95,11 @@ for non_cocoTreesCoords in lower_non_coco_coords_array:
     tl_x = max(tl_x, 0)
     tl_y = max(tl_y, 0)
     br_x = min(br_x, image_width - 1)
-    br_y = min(br_y, image_height - 1)
+    br_y = min(br_y, image_height - verticalHalf - 1)
 
     maskMatrixLower[tl_y: br_y + 1, tl_x: br_x + 1] = 1  # Fill the box with value 1 as a mask
 
 maskMatrixLower = np.multiply(maskMatrixLower, 255)  # To make the matrix value as either 0 or 255 for visualization
-np.save("/Users/ping/thesis/data/maskRgbImage/lower/treesMaskMatrix.npy", maskMatrixLower)
+np.save("/Users/ping/thesis/data/maskRgbImage/lower/ .npy", maskMatrixLower)
+
+

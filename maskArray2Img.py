@@ -1,9 +1,10 @@
 import os
 import numpy as np
 from PIL import Image
+from config import Parameters
 
-maskUpperLayerDir= "/media/sf_Thesis/Data/Kolovai-Trees-20180108/maskRgbImage/upper"
-maskLowerLayerDir= "/media/sf_Thesis/Data/Kolovai-Trees-20180108/maskRgbImage/lower"
+maskUpperLayerDir= os.path.join(Parameters.dataPath, "maskRgbImage/upper")
+maskLowerLayerDir= os.path.join(Parameters.dataPath, "maskRgbImage/lower")
 
 maskTreesArrayFilename = "treesMaskMatrix.npy"
 maskTreesImgFilename = "treesMaskImg.png"
