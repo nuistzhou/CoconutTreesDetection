@@ -35,11 +35,11 @@ def extract_descriptor_from_image(image, descriptor_type):
     gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     if descriptor_type in ["sift", "surf"]:
         if descriptor_type == "sift":
-            method = cv2.xfeatures2d.SIFT_create(400)
+            method = cv2.xfeatures2d.SIFT_create()
         else:
             # Use extended 128-element descriptors, default SURF descriptor only have 64 dimensions
             method = cv2.xfeatures2d.SURF_create(400, extended=True)
-        kps = [cv2.KeyPoint(x=x_center, y=y_center, _size=1)]
+        kps = [cv2.KeyPoint(x=x_center, y=y_center, _size=20)]
         kps, method_descriptor = method.compute(gray, kps)
         method_descriptor = method_descriptor[0, :]
     elif descriptor_type == "hog":

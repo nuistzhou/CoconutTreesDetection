@@ -23,9 +23,9 @@ from config import Parameters
 
 def svmRBF_grid_search(dataset, labels):
     C_s = 10.0 ** np.arange(-1, 3)
-    gammas = 10.0 ** np.arange(-1, 3)
+    gammas = 10.0 ** np.arange(-3, 3)
     tuned_parameters = [{'kernel': ['rbf'], 'gamma': gammas,'C': C_s}]
-    clf = GridSearchCV(svm.SVC(C=1), tuned_parameters, cv=3)
+    clf = GridSearchCV(svm.SVC(C=1), tuned_parameters, cv=5)
     clf.fit(dataset, labels)
     return (clf.best_params_['C'], clf.best_params_['gamma'])
 
@@ -33,7 +33,7 @@ def svmRBF_grid_search(dataset, labels):
 def linearSVM_grid_search(dataset, labels):
     C_s = 10.0 ** np.arange(-1, 3)
     tuned_parameters = [{'C': C_s}]
-    clf = GridSearchCV(svm.LinearSVC(C=1), tuned_parameters, cv=3)
+    clf = GridSearchCV(svm.LinearSVC(C=1), tuned_parameters, cv=5)
     clf.fit(dataset, labels)
     return clf.best_params_['C']
 
@@ -92,10 +92,12 @@ def main(train_dataset_filename, train_labels_filename,
     if classifier == "linear_svm":
         c = linearSVM_grid_search(train_data, train_labels)
         print "Params-> c value {}".format(c)
+        f.write("Params-> c value {}".format(c))
         cls = svm.LinearSVC(C=c)
     else:
         c , gamma = svmRBF_grid_search(train_data, train_labels)
         print "Params -> C: "+ str(c) + ", gamma: "+str(gamma)
+        f.write("Params -> C: "+ str(c) + ", gamma: "+str(gamma))
         cls = svm.SVC(C=c, gamma=gamma)
 
     # train classifier
@@ -140,9 +142,9 @@ if __name__ == '__main__':
     # main("surf_lower_features.npy", "surf_lower_labels.npy", "surf_upper_features.npy",
     #      "surf_upper_labels.npy", 'svm')
 
-    main("hog_lower_features.npy", "hog_lower_labels.npy", "hog_upper_features.npy",
-         "hog_upper_labels.npy", 'linear_svm')
+    # main("hog_lower_features.npy", "hog_lower_labels.npy", "hog_upper_features.npy",
+    #      "hog_upper_labels.npy", 'linear_svm')
     main("sift_lower_features.npy", "sift_lower_labels.npy", "sift_upper_features.npy",
          "sift_upper_labels.npy", 'linear_svm')
-    main("surf_lower_features.npy", "surf_lower_labels.npy", "surf_upper_features.npy",
-         "surf_upper_labels.npy", 'linear_svm')
+    # main("surf_lower_features.npy", "surf_lower_labels.npy", "surf_upper_features.npy",
+    #      "surf_upper_labels.npy", 'linear_svm')

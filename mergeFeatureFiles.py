@@ -18,7 +18,7 @@ def main(non_coco_features_filename, coco_features_filename,
          output_features_filename, output_labels_filename):
     # parser = argparse.ArgumentParser()
     # parser.add_argument("non_coco_features_filename", type=str, help="Label filename (*.npy)")
-    # parser.add_argument("coco_features_filename", type=str, help="Dataset file name (*.npy)")
+    # parser.add_argument("coco_features_filename", type=str, help="Dataset filePickle name (*.npy)")
     # parser.add_argument("output_features_filename", type=str, help="Output features filename (*.npy)")
     # parser.add_argument("output_labels_filename", type=str, help="Output features filename (*.npy)")
     # args = parser.parse_args()

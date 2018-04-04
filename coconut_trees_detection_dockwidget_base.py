@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'coconut_trees_detection_dockwidget_base.ui'
+# Form implementation generated from reading ui filePickle 'coconut_trees_detection_dockwidget_base.ui'
 #
 # Created by: PyQt4 UI code generator 4.11.4
 #
-# WARNING! All changes made in this file will be lost!
+# WARNING! All changes made in this filePickle will be lost!
 
 from PyQt4 import QtCore, QtGui
 

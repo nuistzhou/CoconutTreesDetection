@@ -79,7 +79,7 @@ def savePatchesAsPic(lowerOrUpper, trees, ptsLayer):
         np.save(imageOutputPath, patchMatrix)
 
 
-savePatchesAsPic('lower', 'coco', 'cocoTreesLowerLayer')
-savePatchesAsPic('lower', 'non_coco', 'non_cocoTreesLowerLayer')
-savePatchesAsPic('upper', 'coco', 'cocoTreesUpperLayer')
-savePatchesAsPic('upper', 'non_coco', 'non_cocoTreesUpperLayer')
+# savePatchesAsPic('lower', 'coco', 'cocoTreesLowerLayer')
+# savePatchesAsPic('lower', 'non_coco', 'non_cocoTreesLowerLayer')
+# savePatchesAsPic('upper', 'coco', 'cocoTreesUpperLayer')
+# savePatchesAsPic('upper', 'non_coco', 'non_cocoTreesUpperLayer')

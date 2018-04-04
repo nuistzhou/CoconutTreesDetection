@@ -4,7 +4,7 @@
 #
 # Created by: The Resource Compiler for PyQt4 (Qt v4.8.7)
 #
-# WARNING! All changes made in this file will be lost!
+# WARNING! All changes made in this filePickle will be lost!
 
 from PyQt4 import QtCore
 

@@ -85,7 +85,7 @@ if __name__ == "__main__":
         help="Specify server name", metavar="plugins.qgis.org")
     options, args = parser.parse_args()
     if len(args) != 1:
-        print "Please specify zip file.\n"
+        print "Please specify zip filePickle.\n"
         parser.print_help()
         sys.exit(1)
     if not options.server:

@@ -21,6 +21,7 @@
  ***************************************************************************/
 """
 import os
+import time
 import os.path
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt4.QtGui import QAction, QIcon
@@ -28,13 +29,13 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.gui import *
 from qgis.core import *
-
+import pickle
 
 from clickTool import *
 from config import Parameters
 
 
-# Initialize Qt resources from file resources.py
+# Initialize Qt resources from filePickle resources.py
 import resources
 
 # Import the code for the DockWidget
@@ -124,7 +125,7 @@ class CoconutTreesDetection:
         """Add a toolbar icon to the toolbar.
 
         :param icon_path: Path to the icon for this action. Can be a resource
-            path (e.g. ':/plugins/foo/bar.png') or a normal file system path.
+            path (e.g. ':/plugins/foo/bar.png') or a normal filePickle system path.
         :type icon_path: str
 
         :param text: Text that should be shown in menu items for this action.
@@ -195,16 +196,26 @@ class CoconutTreesDetection:
             parent=self.iface.mainWindow())
 
         self.layer = self.getLayerByName('rgb_image')
-
         self.config = Parameters(self.layer)
-
         self.config.readRasterConfig()
+        self.canvasClicked = ClickTool(self.config, self.canvas, self.layer)
+        self.canvas.setMapTool(self.canvasClicked)
+        self.createOrOpenPickleFile()
 
+        # self.canvasClicked.annotationDict = self.annotationDict
 
         self.uiDockWidgetAnnotation.btnLoadAnnotationFile.clicked.connect(self.loadAnnotationFile)
-
-
+        self.uiDockWidgetAnnotation.btnSaveAnnotationFile.clicked.connect(self.saveAnnotationFile)
         self.uiDockWidgetAnnotation.btnAddAnnotation.clicked.connect(self.addAnnotations)
+        self.uiDockWidgetAnnotation.btnDeleteAnnotation.clicked.connect(self.deleteAnnotation)
+
+    def createOrOpenPickleFile(self):
+        """Create annotation pickle file if not exists. """
+        try:
+            self.filePickle = open(Parameters.annotationFile, 'r')
+            # self.canvasClicked.annotationDict = pickle.load(self.filePickle)
+        except EOFError:
+            self.filePickle = open(Parameters.annotationFile, 'w')
 
     def getLayerByName(self, layer_name):
         layer = None
@@ -216,21 +227,30 @@ class CoconutTreesDetection:
 
 
     def loadAnnotationFile(self):
-        QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Loading")
+        if os.path.getsize(Parameters.annotationFile) != 0:
+            with open(Parameters.annotationFile, "r") as filePickle_read:
+                self.canvasClicked.annotationDict = pickle.load(filePickle_read)
+                QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Done!")
+        else:
+            QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Empty file")
+
+
+    def saveAnnotationFile(self):
+        with open(Parameters.annotationFile, "a") as filePickle_save:
+            pickle.dump(self.canvasClicked.annotationDict, filePickle_save)
+        QMessageBox.information(self.iface.mainWindow(), "Save Annotations", "Saved!")
 
     def addAnnotations(self):
         """Call this function to get clicked point coordinates after pressed the 'Add' button"""
+        self.canvasClicked.adding = True
+    def deleteAnnotation(self):
+        """Delete clicked annotations on the canvas"""
+        self.canvasClicked.deleting = False # Deactivate the adding activity
 
-        canvasClicked = ClickTool(self.config, self.canvas, self.layer)
-        self.canvas.setMapTool(canvasClicked)
-
-
-
-
-
-
-
-
+    def autosaveAndOpenPickleFile(self):
+        while True:
+            self.saveAnnotationFile()
+            time.sleep(20)
 
     #--------------------------------------------------------------------------
 

@@ -1,6 +1,7 @@
 # from extractTraingSamplePatches import  *
 import gdal
 import numpy as np
+from config import Parameters
 
 cocoTreesUpperLayer = "cocoTreesUpperLayer"
 non_cocoTreesUpperLayer = "non_cocoTreesUpperLayer"
@@ -8,7 +9,7 @@ cocoTreesLowerLayer = "cocoTreesLowerLayer"
 non_cocoTreesLowerLayer = "non_cocoTreesLowerLayer"
 
 rgbImgRaster = "rgb_image"
-maskPatchSize = 90 * 2  # Double patch size to avoid overlapping between patch samples
+maskPatchSize = Parameters.maskPatchSize  # Double patch size to avoid overlapping between patch samples
 
 upper_coco_coords_array = getPointPixelCoordinates(cocoTreesUpperLayer, rgbImgRaster)
 upper_non_coco_coords_array = getPointPixelCoordinates(non_cocoTreesUpperLayer, rgbImgRaster)
@@ -100,6 +101,6 @@ for non_cocoTreesCoords in lower_non_coco_coords_array:
     maskMatrixLower[tl_y: br_y + 1, tl_x: br_x + 1] = 1  # Fill the box with value 1 as a mask
 
 maskMatrixLower = np.multiply(maskMatrixLower, 255)  # To make the matrix value as either 0 or 255 for visualization
-np.save("/Users/ping/thesis/data/maskRgbImage/lower/ .npy", maskMatrixLower)
+np.save("/Users/ping/thesis/data/maskRgbImage/lower/treesMaskMatrix.npy", maskMatrixLower)
 
 

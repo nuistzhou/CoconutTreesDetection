@@ -13,10 +13,10 @@ from sklearn.metrics import precision_recall_fscore_support
 def main():
 
 	parser = argparse.ArgumentParser()
-	parser.add_argument("train_data_filename", type=str, help="Train data file name (*.npy)")
-	#parser.add_argument("train_labels_filename", type=str, help="Train data file name (*.npy)")
-	parser.add_argument("known_test_filename", type=str, help="Known test data file name (*.npy)")
-	parser.add_argument("unknown_test_filename", type=str, help="Unknown test data file name (*.npy)")
+	parser.add_argument("train_data_filename", type=str, help="Train data filePickle name (*.npy)")
+	#parser.add_argument("train_labels_filename", type=str, help="Train data filePickle name (*.npy)")
+	parser.add_argument("known_test_filename", type=str, help="Known test data filePickle name (*.npy)")
+	parser.add_argument("unknown_test_filename", type=str, help="Unknown test data filePickle name (*.npy)")
 	args = parser.parse_args()
 
 	train_data_filename = args.train_data_filename
