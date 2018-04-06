@@ -90,6 +90,13 @@ def fast_stratified_kmeans_codebook(list_datasets, labels, codebook_size, max_ni
 
 
 def main():
+	"""
+	python codebook.py ~/imagery/coco2_dataset/lower/all/ 200 random ~/imagery/coco2_dataset/random_codebook200.npy
+	python bovw.py ~/imagery/coco2_dataset/lower/all/ ~/imagery/coco2_dataset/random_codebook200.npy ~/imagery/coco2_dataset/bow_sift_lower_features.npy ~/imagery/coco2_dataset/bow_sift_lower_labels.npy
+	python bovw.py ~/imagery/coco2_dataset/upper/all/ ~/imagery/coco2_dataset/random_codebook200.npy ~/imagery/coco2_dataset/bow_sift_upper_features.npy ~/imagery/coco2_dataset/bow_sift_upper_labels.npy
+	python classifyImagePatches.py ~/imagery/coco2_dataset/bow_sift_lower_features.npy ~/imagery/coco2_dataset/bow_sift_lower_labels.npy ~/imagery/coco2_dataset/bow_sift_upper_features.npy ~/imagery/coco2_dataset/bow_sift_upper_labels.npy svm
+	"""
+	
 	parser = argparse.ArgumentParser()
 	parser.add_argument("img_dir", type=str, help="Directory of images")
 	parser.add_argument("codebook_size", type=int, help="Size of the dictionary")
