@@ -73,13 +73,13 @@ def savePatchesAsPic(lowerOrUpper, trees, ptsLayer):
 
     patchesMatrix = extractPatches(ptsLayer, 'rgb_image', 90)
     for i, patchMatrix in enumerate(patchesMatrix):
-        file_name = str(i) + '.npy'
+        file_name = "{0:04}.npy".format(i)
         imageOutputPath = os.path.join(treePatchDir, file_name)
         # imsave(imageOutputPath, patchMatrix)
         np.save(imageOutputPath, patchMatrix)
 
 
-savePatchesAsPic('lower', 'coco', 'cocoTreesLowerLayer')
-savePatchesAsPic('lower', 'non_coco', 'non_cocoTreesLowerLayer')
-savePatchesAsPic('upper', 'coco', 'cocoTreesUpperLayer')
-savePatchesAsPic('upper', 'non_coco', 'non_cocoTreesUpperLayer')
+# savePatchesAsPic('lower', 'coco', 'cocoTreesLowerLayer')
+# savePatchesAsPic('lower', 'non_coco', 'non_cocoTreesLowerLayer')
+# savePatchesAsPic('upper', 'coco', 'cocoTreesUpperLayer')
+# savePatchesAsPic('upper', 'non_coco', 'non_cocoTreesUpperLayer')

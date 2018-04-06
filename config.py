@@ -3,8 +3,14 @@ import os
 class Parameters:
     # Define some dataset path to be easily used later
     dataPath = "/Users/ping/thesis/data"
+    maskPatchSize = 90*2
     featureDescriptorPath = os.path.join(dataPath, "featureDescriptors")
     mergedFeatureDescriptorPath = os.path.join(dataPath, "featureDescriptors/merged_features")
+    performanceTestDir = os.path.join(dataPath, "performance_test")
+    annotationFile = os.path.join(dataPath, "annotation.pkl")
+    maskRgbImage = os.path.join(dataPath, "maskRgbImage")
+
+
 
     def __init__(self, layer):
         self.layer = layer
@@ -12,7 +18,9 @@ class Parameters:
         self.pixSizeY = None #Pixel size of Y axis
         self.topLeftX = None #Geo coordinate X of the Top Left pixel
         self.topLeftY = None #Geo coordinate Y of the Top Left pixel
-        self.boundingboxSize = 25
+        self.boundingboxSize = 25 # unit: pixel
+
+
 
 
     def readRasterConfig(self):
