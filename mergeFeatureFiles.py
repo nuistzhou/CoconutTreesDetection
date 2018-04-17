@@ -55,15 +55,15 @@ def main(non_coco_features_filename, coco_features_filename,
 
 
 if __name__ == '__main__':
-    main("featureDescriptors/hog_lower_non_coco.npy", "featureDescriptors/hog_lower_coco.npy",
-         "featureDescriptors/merged_features/hog_lower_features.npy", "featureDescriptors/merged_features/hog_lower_labels.npy")
-    main("featureDescriptors/sift_lower_non_coco.npy", "featureDescriptors/sift_lower_coco.npy",
-         "featureDescriptors/merged_features/sift_lower_features.npy", "featureDescriptors/merged_features/sift_lower_labels.npy")
+    # main("featureDescriptors/hog_lower_non_coco.npy", "featureDescriptors/hog_lower_coco.npy",
+    #      "featureDescriptors/merged_features/hog_lower_features.npy", "featureDescriptors/merged_features/hog_lower_labels.npy")
+    # main("featureDescriptors/sift_lower_non_coco.npy", "featureDescriptors/sift_lower_coco.npy",
+    #      "featureDescriptors/merged_features/sift_lower_features.npy", "featureDescriptors/merged_features/sift_lower_labels.npy")
     main("featureDescriptors/surf_lower_non_coco.npy", "featureDescriptors/surf_lower_coco.npy",
          "featureDescriptors/merged_features/surf_lower_features.npy", "featureDescriptors/merged_features/surf_lower_labels.npy")
-    main("featureDescriptors/hog_upper_non_coco.npy", "featureDescriptors/hog_upper_coco.npy",
-         "featureDescriptors/merged_features/hog_upper_features.npy", "featureDescriptors/merged_features/hog_upper_labels.npy")
-    main("featureDescriptors/sift_upper_non_coco.npy", "featureDescriptors/sift_upper_coco.npy",
-         "featureDescriptors/merged_features/sift_upper_features.npy", "featureDescriptors/merged_features/sift_upper_labels.npy")
+    # main("featureDescriptors/hog_upper_non_coco.npy", "featureDescriptors/hog_upper_coco.npy",
+    #      "featureDescriptors/merged_features/hog_upper_features.npy", "featureDescriptors/merged_features/hog_upper_labels.npy")
+    # main("featureDescriptors/sift_upper_non_coco.npy", "featureDescriptors/sift_upper_coco.npy",
+    #      "featureDescriptors/merged_features/sift_upper_features.npy", "featureDescriptors/merged_features/sift_upper_labels.npy")
     main("featureDescriptors/surf_upper_non_coco.npy", "featureDescriptors/surf_upper_coco.npy",
          "featureDescriptors/merged_features/surf_upper_features.npy", "featureDescriptors/merged_features/surf_upper_labels.npy")

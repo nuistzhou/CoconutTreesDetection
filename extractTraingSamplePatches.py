@@ -64,7 +64,7 @@ def extractPatches(points_layer_name, raster_layer_name, patchSize):
     return patchesMatrixes
 
 
-def savePatchesAsPic(lowerOrUpper, trees, ptsLayer):
+def savePatchesAsNumpy(lowerOrUpper, trees, ptsLayer):
     patchesDir = '/Users/ping/thesis/data/patchesNumpyArrays'
     treePatchDir = patchesDir + '/' + str(lowerOrUpper) + '/' + trees + '/'
 

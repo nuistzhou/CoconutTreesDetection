@@ -95,6 +95,12 @@ def main():
 	python bovw.py ~/imagery/coco2_dataset/lower/all/ ~/imagery/coco2_dataset/random_codebook200.npy ~/imagery/coco2_dataset/bow_sift_lower_features.npy ~/imagery/coco2_dataset/bow_sift_lower_labels.npy
 	python bovw.py ~/imagery/coco2_dataset/upper/all/ ~/imagery/coco2_dataset/random_codebook200.npy ~/imagery/coco2_dataset/bow_sift_upper_features.npy ~/imagery/coco2_dataset/bow_sift_upper_labels.npy
 	python classifyImagePatches.py ~/imagery/coco2_dataset/bow_sift_lower_features.npy ~/imagery/coco2_dataset/bow_sift_lower_labels.npy ~/imagery/coco2_dataset/bow_sift_upper_features.npy ~/imagery/coco2_dataset/bow_sift_upper_labels.npy svm
+
+	python codebook.py /Users/ping/thesis/data/patchImages/lower/all/ 200 fast_st_kmeans /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook200.npy
+	python bovw.py /Users/ping/thesis/data/patchImages/lower/all/ /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook200.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_lower_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_lower_labels.npy
+	python bovw.py /Users/ping/thesis/data/patchImages/upper/all/ /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook200.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_labels.npy
+	python classifyImagePatches.py /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_lower_labels.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_labels.npy linear_svm
+
 	"""
 	
 	parser = argparse.ArgumentParser()
@@ -130,7 +136,7 @@ def main():
 	elif codebook_method == "st_kmeans":
 		codebook = stratified_kmeans_codebook(list_decriptors, list_img_labels, codebook_size)
 	else:
-		codebook = fast_stratified_kmeans_codebook(list_decriptors, list_img_labels, codebook_size, 50)
+		codebook = fast_stratified_kmeans_codebook(list_decriptors, list_img_labels, codebook_size, 100)
 
 	np.save(output_codebook, codebook)
 

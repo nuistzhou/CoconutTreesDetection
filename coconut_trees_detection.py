@@ -22,6 +22,7 @@
 """
 import os
 import time
+import threading
 import os.path
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt4.QtGui import QAction, QIcon
@@ -200,22 +201,18 @@ class CoconutTreesDetection:
         self.config.readRasterConfig()
         self.canvasClicked = ClickTool(self.config, self.canvas, self.layer)
         self.canvas.setMapTool(self.canvasClicked)
-        self.createOrOpenPickleFile()
-
-        # self.canvasClicked.annotationDict = self.annotationDict
 
         self.uiDockWidgetAnnotation.btnLoadAnnotationFile.clicked.connect(self.loadAnnotationFile)
         self.uiDockWidgetAnnotation.btnSaveAnnotationFile.clicked.connect(self.saveAnnotationFile)
         self.uiDockWidgetAnnotation.btnAddAnnotation.clicked.connect(self.addAnnotations)
         self.uiDockWidgetAnnotation.btnDeleteAnnotation.clicked.connect(self.deleteAnnotation)
 
-    def createOrOpenPickleFile(self):
-        """Create annotation pickle file if not exists. """
-        try:
-            self.filePickle = open(Parameters.annotationFile, 'r')
-            # self.canvasClicked.annotationDict = pickle.load(self.filePickle)
-        except EOFError:
-            self.filePickle = open(Parameters.annotationFile, 'w')
+        #-------------------------------------------------------------------
+        # Add function for auto-save later...
+        # autoSaver = threading.Thread(target = self.autosavePickleFile())
+        # autoSaver.start()
+        #--------------------------------------------------------------------
+
 
     def getLayerByName(self, layer_name):
         layer = None
@@ -229,28 +226,36 @@ class CoconutTreesDetection:
     def loadAnnotationFile(self):
         if os.path.getsize(Parameters.annotationFile) != 0:
             with open(Parameters.annotationFile, "r") as filePickle_read:
-                self.canvasClicked.annotationDict = pickle.load(filePickle_read)
+                self.canvasClicked.annotationList = pickle.load(filePickle_read)
+                self.canvasClicked.loadRubberbandsFromAnnotationList()
+                self.canvasClicked.adding = False
+                self.canvasClicked.deleting = False
                 QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Done!")
         else:
             QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Empty file")
 
 
     def saveAnnotationFile(self):
-        with open(Parameters.annotationFile, "a") as filePickle_save:
-            pickle.dump(self.canvasClicked.annotationDict, filePickle_save)
+        with open(Parameters.annotationFile, "w") as filePickle_save:
+            pickle.dump(self.canvasClicked.annotationList, filePickle_save)
+            print self.canvasClicked.annotationList
         QMessageBox.information(self.iface.mainWindow(), "Save Annotations", "Saved!")
 
     def addAnnotations(self):
         """Call this function to get clicked point coordinates after pressed the 'Add' button"""
         self.canvasClicked.adding = True
+        self.canvasClicked.deleting = False
     def deleteAnnotation(self):
         """Delete clicked annotations on the canvas"""
-        self.canvasClicked.deleting = False # Deactivate the adding activity
+        self.canvasClicked.adding = False # Deactivate the adding activity
+        self.canvasClicked.deleting = True
 
-    def autosaveAndOpenPickleFile(self):
+    def autosavePickleFile(self):
         while True:
-            self.saveAnnotationFile()
-            time.sleep(20)
+            if len(self.canvasClicked.annotationList) != 0:
+                self.saveAnnotationFile()
+            time.sleep(5)
+
 
     #--------------------------------------------------------------------------
 
