@@ -59,6 +59,14 @@ def print_confusion_matrix(confusionMatrix, num_classes, file):
 def main(train_dataset_filename, train_labels_filename,
          test_dataset_filename, test_labels_filename, classifier):
 
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("train_dataset_filename", type=str, help="train_dataset_filename")
+    # parser.add_argument("train_labels_filename", type=str, help="train_labels_filename")
+    # parser.add_argument("test_dataset_filename", type=str, help="test_dataset_filename")
+    # parser.add_argument("test_labels_filename", type=str, help="test_labels_filename")
+    # parser.add_argument("classifier", type=str, help="test_labels_filename", choices=['svm', 'linear_svm'])
+
+    # args = parser.parse_args()
 
     # Get the current descriptor name from the "train_dataset_filename"
     descriptor_name = train_dataset_filename[:-19]
@@ -66,15 +74,15 @@ def main(train_dataset_filename, train_labels_filename,
     performance_test_file_path = os.path.join(Parameters.performanceTestDir,performance_test_filename)
     f = open(performance_test_file_path, 'w')
 
-    train_dataset_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, train_dataset_filename)
-    train_labels_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, train_labels_filename)
-    test_dataset_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, test_dataset_filename)
-    test_labels_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, test_labels_filename)
+    # train_dataset_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, train_dataset_filename)
+    # train_labels_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, train_labels_filename)
+    # test_dataset_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, test_dataset_filename)
+    # test_labels_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, test_labels_filename)
 
-    # train_dataset_filename = os.path.join(Parameters.bowFeatureDescriptorPath, train_dataset_filename)
-    # train_labels_filename = os.path.join(Parameters.bowFeatureDescriptorPath, train_labels_filename)
-    # test_dataset_filename = os.path.join(Parameters.bowFeatureDescriptorPath, test_dataset_filename)
-    # test_labels_filename = os.path.join(Parameters.bowFeatureDescriptorPath, test_labels_filename)
+    train_dataset_filename = os.path.join(Parameters.bowFeatureDescriptorPath, train_dataset_filename)
+    train_labels_filename = os.path.join(Parameters.bowFeatureDescriptorPath, train_labels_filename)
+    test_dataset_filename = os.path.join(Parameters.bowFeatureDescriptorPath, test_dataset_filename)
+    test_labels_filename = os.path.join(Parameters.bowFeatureDescriptorPath, test_labels_filename)
 
 
 
@@ -152,9 +160,16 @@ if __name__ == '__main__':
     #      "hog_upper_labels.npy", 'linear_svm')
     # main("sift_lower_features.npy", "sift_lower_labels.npy", "sift_upper_features.npy",
     #      "sift_upper_labels.npy", 'linear_svm')
-    main("surf_lower_features.npy", "surf_lower_labels.npy", "surf_upper_features.npy",
-         "surf_upper_labels.npy", 'linear_svm')
+    # main("surf_lower_features.npy", "surf_lower_labels.npy", "surf_upper_features.npy",
+    #      "surf_upper_labels.npy", 'linear_svm')
     # main("bow_sift_lower_features.npy", "bow_sift_lower_labels.npy",
     #      "bow_sift_upper_features.npy", "bow_sift_upper_labels.npy", 'linear_svm')
     # main("bow_surf_lower_features.npy", "bow_surf_lower_labels.npy",
     #      "bow_surf_upper_features.npy", "bow_surf_upper_labels.npy", 'linear_svm')
+
+    # main("bow100_sift_lower_features.npy", "bow100_sift_lower_labels.npy", "bow100_sift_upper_features.npy", "bow100_sift_upper_labels.npy", "linear_svm")
+    # main("bow50_sift_lower_features.npy", "bow50_sift_lower_labels.npy", "bow50_sift_upper_features.npy", "bow50_sift_upper_labels.npy", "linear_svm")
+    #
+    main("bow100_surf_lower_features.npy", "bow100_surf_lower_labels.npy", "bow100_surf_upper_features.npy", "bow100_surf_upper_labels.npy", "linear_svm")
+    # main("bow50_surf_lower_features.npy", "bow50_surf_lower_labels.npy", "bow50_surf_upper_features.npy", "bow50_surf_upper_labels.npy", "linear_svm")
+

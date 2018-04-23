@@ -224,21 +224,28 @@ class CoconutTreesDetection:
 
 
     def loadAnnotationFile(self):
-        if os.path.getsize(Parameters.annotationFile) != 0:
-            with open(Parameters.annotationFile, "r") as filePickle_read:
-                self.canvasClicked.annotationList = pickle.load(filePickle_read)
-                self.canvasClicked.loadRubberbandsFromAnnotationList()
-                self.canvasClicked.adding = False
-                self.canvasClicked.deleting = False
-                QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Done!")
-        else:
-            QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Empty file")
 
+        self.canvasClicked.loadAnnotationAndDisplay()
+        self.canvasClicked.adding = False
+        self.canvasClicked.deleting = False
+
+        if not os.path.exists(Parameters.annotationFile):
+            with open(Parameters.annotationFile, 'w') as filePickle_read:
+                pass
+            QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "New annotation file created!")
+        else:
+            try:
+                with open(Parameters.annotationFile, "r") as filePickle_read:
+                    self.canvasClicked.annotationList = pickle.load(filePickle_read)
+                    QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Loaded!")
+            except EOFError:
+                    QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Empty annotation file!")
 
     def saveAnnotationFile(self):
         with open(Parameters.annotationFile, "w") as filePickle_save:
             pickle.dump(self.canvasClicked.annotationList, filePickle_save)
-            print self.canvasClicked.annotationList
+            self.canvasClicked.deleting = False
+            self.canvasClicked.adding = False
         QMessageBox.information(self.iface.mainWindow(), "Save Annotations", "Saved!")
 
     def addAnnotations(self):

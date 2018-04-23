@@ -1,3 +1,4 @@
+import os
 import pickle
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt4.QtGui import QAction, QIcon
@@ -37,10 +38,12 @@ class ClickTool(QgsMapTool):
     def canvasPressEvent(self, event):
         self.point = self.canvas.getCoordinateTransform()
         self.point = self.point.toMapCoordinates(event.pos().x(), event.pos().y())
-        self.point = self.geoCoord2PixelPosition(self.point)
+        print self.point.x(), self.point.y()
+
+        # self.point = self.geoCoord2PixelPosition(self.point)
         # if event.button() == Qt.LeftButton and self.adding == True:
         if self.adding == True:
-            self.pointArray.append((self.point.x(), self.point.y()))
+            # self.pointArray.append((self.point.x(), self.point.y()))
             self.boundingBoxPointsCoords = self.generateBoundingPointsCoordinates()
             self.createRubberbands(self.boundingBoxPointsCoords)
             self.showPolygon()
@@ -51,7 +54,8 @@ class ClickTool(QgsMapTool):
             self.removeRubberband()
 
     def canvasDoubleClickEvent(self, QMouseEvent):
-        pass
+
+        # print vertex_items
         """Try to deactivate the tool after doble clicking on the canvas
         Not finished yet..."""
         # self.adding = False
@@ -60,22 +64,19 @@ class ClickTool(QgsMapTool):
     def removeRubberband(self):
         """Remove certain rubberband when clicking on in the boundingbox
         @type rubberband: QgsRubberBand"""
-        removed_index = int()
-        for i,rubberband in enumerate(self.rubberbandsList):
-            print rubberband.asGeometry()
-            # print self.point.geometryType()
-            print type(self.point)
-            # if rubberband.asGeometry().contains(QgsGeometry.fromPoint(self.point)):
-            if True:
-            # if QgsGeometry.fromPoint(self.point).within(rubberband.asGeometry()):
-                print '%%@%%##'
-                # removed_index = i
-                # self.canvas.scene().removeItem(rubberband)
-                # del self.rubberbandsList[removed_index]
-                # del self.annotationList[removed_index]
-                for i in range(len(self.rubberbandsList)):
-                    self.rubberbandsList[i].reset()
-                break
+        rubberbands = [i for i in self.canvas.scene().items() if isinstance(i, QgsRubberBand)]
+
+        print len(self.annotationList)
+        print len(rubberbands)
+        print self.annotationList, self.rubberbandsList[0].asGeometry().boundingBox().centroid()
+        for i, annotation in enumerate(self.annotationList):
+            pt1_x, pt1_y = annotation[0]
+            pt3_x, pt3_y = annotation[2]
+            if ((self.point.x() <= pt3_x) and (self.point.x() >= pt1_x) and
+                (self.point.y() <= pt1_y) and (self.point.y() >= pt3_y)):
+                self.annotationList.pop(i)
+                self.canvas.scene().removeItem(rubberbands[i])
+                print 'cus'
 
         with open(Parameters.annotationFile, 'w') as f:
              pickle.dump(self.annotationList, f)
@@ -101,7 +102,6 @@ class ClickTool(QgsMapTool):
         list_bounding_points_coords.append((self.point.x() - self.config.boundingboxSize * self.config.pixSizeX,
                                             self.point.y() + (-self.config.boundingboxSize * self.config.pixSizeY)))
 
-        print self.point.x(), self.point.y()
         return list_bounding_points_coords
 
     def createRubberbands(self, boundingPoints):
@@ -127,20 +127,15 @@ class ClickTool(QgsMapTool):
         """ Add every newly given annotation to a defined List"""
         self.annotationList.append(self.boundingBoxPointsCoords)
 
-    def loadRubberbandsFromAnnotationList(self):
+    def loadAnnotationAndDisplay(self):
+        rubberbands = [i for i in self.canvas.scene().items() if isinstance(i, QgsRubberBand)]
+        for rubberband in rubberbands:
+            self.canvas.scene().removeItem(rubberband)
+
+        self.rubberbandsList = list()
         for annotation in self.annotationList:
             self.createRubberbands(annotation)
 
-    # def deleteAnnotationsWhenClickedInside(self):
-    #     pass
-    #     # for index, coordsList in self.annotationList.iteritems():
-    #     #     top_left_x = coordsList[0][0]
-    #     #     top_left_y = coordsList[0][1]
-    #     #     bottom_right_x = coordsList[3][0]
-    #     #     bottom_right_y = coordsList[3][1]
-    #     #     self.polygon.reset()
-    #     #     if  (top_left_x <= self.point.x() <= bottom_right_x) and
-    #     #         (top_left_y >= self.point.y() >= bottom_right_y):
 
 
 
