@@ -2,7 +2,7 @@ import os
 
 class Parameters:
     # Define some dataset path to be easily used later
-    dataPath = "/Users/ping/thesis/data"
+    dataPath = "/Users/ping/Documents/thesis/data"
     samplePatchSize = 90
     maskPatchSize = 90*2
     cocoVecLayer = "coconutTrees"

@@ -79,13 +79,13 @@ def main():
 
     treesUpperLayerMaskMatrix = np.load(os.path.join(Parameters.maskRgbImage, "upper/randomMaskMatrix_2000.npy"))
     randomUpperPatchesNpyList, maskMatrixUpper  = extractRandomPatchCenterFromList(treesUpperLayerMaskMatrix, 500)
-    np.save("/Users/ping/thesis/data/maskRgbImage/upper/randomMaskMatrix_2500.npy", maskMatrixUpper)
+    np.save("/Users/ping/Documents/thesis/data/maskRgbImage/upper/randomMaskMatrix_2500.npy", maskMatrixUpper)
     with open(os.path.join(Parameters.maskRgbImage, 'upper/randomUpperPatchesNpyList_500.pkl'), 'w+') as f:
         pickle.dump(randomUpperPatchesNpyList, f)
 
     treesLowerLayerMaskMatrix = np.load(os.path.join(Parameters.maskRgbImage, "lower/randomMaskMatrix_2000.npy"))
     randomLowerPatchesNpyList, maskMatrixLower  = extractRandomPatchCenterFromList(treesLowerLayerMaskMatrix, 500)
-    np.save("/Users/ping/thesis/data/maskRgbImage/lower/randomMaskMatrix_2500.npy", maskMatrixLower)
+    np.save("/Users/ping/Documents/thesis/data/maskRgbImage/lower/randomMaskMatrix_2500.npy", maskMatrixLower)
     with open(os.path.join(Parameters.maskRgbImage, 'lower/randomLowerPatchesNpyList_500.pkl'), 'w+') as f:
         pickle.dump(randomLowerPatchesNpyList, f)
 
@@ -93,8 +93,8 @@ def main():
     extractRandomPatchesAsNpy(randomLowerPatchesNpyList, 'lower')
     extractRandomPatchesAsNpy(randomUpperPatchesNpyList, 'upper')
 
-    patchesNpy2Image('/Users/ping/thesis/data/patchesNumpyArrays/lower/random', '/Users/ping/thesis/data/patchImages/lower/random')
-    patchesNpy2Image('/Users/ping/thesis/data/patchesNumpyArrays/upper/random', '/Users/ping/thesis/data/patchImages/upper/random')
+    patchesNpy2Image('/Users/ping/Documents/thesis/data/patchesNumpyArrays/lower/random', '/Users/ping/thesis/data/patchImages/lower/random')
+    patchesNpy2Image('/Users/ping/Documents/thesis/data/patchesNumpyArrays/upper/random', '/Users/ping/thesis/data/patchImages/upper/random')
 
 if __name__ == '__main__':
     main()

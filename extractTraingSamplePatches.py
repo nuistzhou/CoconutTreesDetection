@@ -44,7 +44,7 @@ def getPointPixelCoordinates(points_layer_name, raster_layer_name):
 
 
 def extractPatches(points_layer_name, raster_layer_name, patchSize):
-    rgb_image_path = '/Users/ping/thesis/data/rgb_image.tif'
+    rgb_image_path = '/Users/ping/Documents/thesis/data/rgb_image.tif'
     image = gdal.Open(rgb_image_path).ReadAsArray()
     image = np.transpose(image, (1, 2, 0))
     image_height = float(image.shape[0])
@@ -65,7 +65,7 @@ def extractPatches(points_layer_name, raster_layer_name, patchSize):
 
 
 def savePatchesAsNumpy(lowerOrUpper, trees, ptsLayer):
-    patchesDir = '/Users/ping/thesis/data/patchesNumpyArrays'
+    patchesDir = '/Users/ping/Documents/thesis/data/patchesNumpyArrays'
     treePatchDir = patchesDir + '/' + str(lowerOrUpper) + '/' + trees + '/'
 
     # rgb_image_path = '/Users/nuistzhou/thesis/Kolovai-Trees-20180108/rgb_image.tif'

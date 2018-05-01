@@ -3,8 +3,8 @@ from PIL import Image
 import numpy as np
 
 def numpy2Image(numpyDir, imgDir):
-    inputRootDir = '/Users/nuistzhou/thesis/Kolovai-Trees-20180108/patchesNumpyArrays/'
-    outputRootDir = '/Users/nuistzhou/thesis/Kolovai-Trees-20180108/patchImages/'
+    inputRootDir = '/Users/ping/Documents/thesis/data/patchesNumpyArrays/'
+    outputRootDir = '/Users/ping/Documents/thesis/data/patchImages/'
 
     inputDir = os.path.join(inputRootDir, numpyDir)
     outputDir = os.path.join(outputRootDir, imgDir)

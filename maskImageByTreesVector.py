@@ -16,8 +16,8 @@ upper_non_coco_coords_array = getPointPixelCoordinates(non_cocoTreesUpperLayer, 
 lower_coco_coords_array = getPointPixelCoordinates(cocoTreesLowerLayer, rgbImgRaster)
 lower_non_coco_coords_array = getPointPixelCoordinates(non_cocoTreesLowerLayer, rgbImgRaster)
 
-rgb_image_path = '/Users/ping/thesis/data/rgb_image.tif'
-rgb_image_upper = "/Users/ping/thesis/data/rgb_image_upperLayer.tif"
+rgb_image_path = '/Users/ping/Documents/thesis/data/rgb_image.tif'
+rgb_image_upper = "/Users/ping/Documents/thesis/data/rgb_image_upperLayer.tif"
 
 image = gdal.Open(rgb_image_path).ReadAsArray()
 image_upper = gdal.Open(rgb_image_upper).ReadAsArray()
