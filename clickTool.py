@@ -38,16 +38,21 @@ class ClickTool(QgsMapTool):
     def canvasPressEvent(self, event):
         self.point = self.canvas.getCoordinateTransform()
         self.point = self.point.toMapCoordinates(event.pos().x(), event.pos().y())
-        print self.point.x(), self.point.y()
 
         # self.point = self.geoCoord2PixelPosition(self.point)
         # if event.button() == Qt.LeftButton and self.adding == True:
         if self.adding == True:
             # self.pointArray.append((self.point.x(), self.point.y()))
             self.boundingBoxPointsCoords = self.generateBoundingPointsCoordinates()
-            self.createRubberbands(self.boundingBoxPointsCoords)
-            self.showPolygon()
-            self.addAnnotationsToList()
+            self.rubberband = self.createRubberbands(self.boundingBoxPointsCoords)
+            self.rubberband.show()
+
+            # Add this annotation to self.annotationList
+            self.annotationList.append(self.boundingBoxPointsCoords)
+
+            # Add rubberband to the self.rubberbandsList
+            self.rubberbandsList.append(self.rubberband)
+
 
         elif self.deleting == True:
             # Remove the rubberband from the canvas and also delete from the dictionary, pickle file
@@ -68,15 +73,20 @@ class ClickTool(QgsMapTool):
 
         print len(self.annotationList)
         print len(rubberbands)
-        print self.annotationList, self.rubberbandsList[0].asGeometry().boundingBox().centroid()
         for i, annotation in enumerate(self.annotationList):
             pt1_x, pt1_y = annotation[0]
             pt3_x, pt3_y = annotation[2]
+
             if ((self.point.x() <= pt3_x) and (self.point.x() >= pt1_x) and
                 (self.point.y() <= pt1_y) and (self.point.y() >= pt3_y)):
+
+                print "Top left:", pt1_x, pt1_y
+                print "Bottom right:", pt3_x, pt3_y
+                print "Clicked point:", self.point.x(), self.point.y()
+
                 self.annotationList.pop(i)
                 self.canvas.scene().removeItem(rubberbands[i])
-                print 'cus'
+                break
 
         with open(Parameters.annotationFile, 'w') as f:
              pickle.dump(self.annotationList, f)
@@ -105,6 +115,7 @@ class ClickTool(QgsMapTool):
         return list_bounding_points_coords
 
     def createRubberbands(self, boundingPoints):
+        """Create and return the rubberband object"""
         boundingQgsPtsList = list()
         self.polygon = QgsRubberBand(self.canvas, True)  # True means a polygon
         self.polygon.setBorderColor(QColor(255, 0, 0))
@@ -115,26 +126,18 @@ class ClickTool(QgsMapTool):
         for pt_x, pt_y in boundingPoints:
             boundingQgsPtsList.append(QgsPoint(pt_x, pt_y))
         self.polygon.addGeometry(QgsGeometry.fromPolygon([boundingQgsPtsList]), None)
-        self.rubberbandsList.append(self.polygon)
-    def showPolygon(self):
-        """ Shown an boundinbox defined.
-        It would be nice to be designed as an size-adjustable polygon for user when annotating... """
-        # self.polygon.asGeometry()
-        self.polygon.show()
+        return self.polygon
 
-
-    def addAnnotationsToList(self):
-        """ Add every newly given annotation to a defined List"""
-        self.annotationList.append(self.boundingBoxPointsCoords)
-
-    def loadAnnotationAndDisplay(self):
+    def displayAnnotations(self):
         rubberbands = [i for i in self.canvas.scene().items() if isinstance(i, QgsRubberBand)]
         for rubberband in rubberbands:
             self.canvas.scene().removeItem(rubberband)
 
         self.rubberbandsList = list()
         for annotation in self.annotationList:
-            self.createRubberbands(annotation)
+            rubberband = self.createRubberbands(annotation)
+            self.rubberbandsList.append(rubberband)
+            rubberband.show()
 
 
 

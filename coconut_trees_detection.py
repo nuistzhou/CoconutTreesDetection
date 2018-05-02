@@ -202,7 +202,7 @@ class CoconutTreesDetection:
         self.canvasClicked = ClickTool(self.config, self.canvas, self.layer)
         self.canvas.setMapTool(self.canvasClicked)
 
-        self.uiDockWidgetAnnotation.btnLoadAnnotationFile.clicked.connect(self.loadAnnotationFile)
+        self.uiDockWidgetAnnotation.btnLoadAnnotationFile.clicked.connect(self.loadAnnotationsAndDisplay)
         self.uiDockWidgetAnnotation.btnSaveAnnotationFile.clicked.connect(self.saveAnnotationFile)
         self.uiDockWidgetAnnotation.btnAddAnnotation.clicked.connect(self.addAnnotations)
         self.uiDockWidgetAnnotation.btnDeleteAnnotation.clicked.connect(self.deleteAnnotation)
@@ -223,9 +223,8 @@ class CoconutTreesDetection:
         return layer
 
 
-    def loadAnnotationFile(self):
+    def loadAnnotationsAndDisplay(self):
 
-        self.canvasClicked.loadAnnotationAndDisplay()
         self.canvasClicked.adding = False
         self.canvasClicked.deleting = False
 
@@ -240,6 +239,9 @@ class CoconutTreesDetection:
                     QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Loaded!")
             except EOFError:
                     QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Empty annotation file!")
+        # Display loaded annotations on canvas
+        self.canvasClicked.displayAnnotations()
+
 
     def saveAnnotationFile(self):
         with open(Parameters.annotationFile, "w") as filePickle_save:
