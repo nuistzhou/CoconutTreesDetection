@@ -69,10 +69,10 @@ class ClickTool(QgsMapTool):
     def removeRubberband(self):
         """Remove certain rubberband when clicking on in the boundingbox
         @type rubberband: QgsRubberBand"""
-        rubberbands = [i for i in self.canvas.scene().items() if isinstance(i, QgsRubberBand)]
+        # rubberbands = [i for i in self.canvas.scene().items() if isinstance(i, QgsRubberBand)]
 
         print len(self.annotationList)
-        print len(rubberbands)
+        print len(self.rubberbandsList)
         for i, annotation in enumerate(self.annotationList):
             pt1_x, pt1_y = annotation[0]
             pt3_x, pt3_y = annotation[2]
@@ -85,7 +85,8 @@ class ClickTool(QgsMapTool):
                 print "Clicked point:", self.point.x(), self.point.y()
 
                 self.annotationList.pop(i)
-                self.canvas.scene().removeItem(rubberbands[i])
+                self.canvas.scene().removeItem(self.rubberbandsList[i])
+                self.rubberbandsList.pop(i)
                 break
 
         with open(Parameters.annotationFile, 'w') as f:
