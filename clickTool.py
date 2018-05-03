@@ -33,14 +33,11 @@ class ClickTool(QgsMapTool):
             pixPosY = int(round((self.config.topLeftY - point.y()) / self.config.pixSizeY))
             return QgsPoint(self.config.topLeftX + pixPosX * self.config.pixSizeX,
                             self.config.topLeftY - pixPosY * self.config.pixSizeY)
-            # return QgsPoint(pixPosX, pixPosY)
 
     def canvasPressEvent(self, event):
         self.point = self.canvas.getCoordinateTransform()
         self.point = self.point.toMapCoordinates(event.pos().x(), event.pos().y())
 
-        # self.point = self.geoCoord2PixelPosition(self.point)
-        # if event.button() == Qt.LeftButton and self.adding == True:
         if self.adding == True:
             # self.pointArray.append((self.point.x(), self.point.y()))
             self.boundingBoxPointsCoords = self.generateBoundingPointsCoordinates()
@@ -60,7 +57,6 @@ class ClickTool(QgsMapTool):
 
     def canvasDoubleClickEvent(self, QMouseEvent):
 
-        # print vertex_items
         """Try to deactivate the tool after doble clicking on the canvas
         Not finished yet..."""
         # self.adding = False
@@ -79,10 +75,6 @@ class ClickTool(QgsMapTool):
 
             if ((self.point.x() <= pt3_x) and (self.point.x() >= pt1_x) and
                 (self.point.y() <= pt1_y) and (self.point.y() >= pt3_y)):
-
-                print "Top left:", pt1_x, pt1_y
-                print "Bottom right:", pt3_x, pt3_y
-                print "Clicked point:", self.point.x(), self.point.y()
 
                 self.annotationList.pop(i)
                 self.canvas.scene().removeItem(self.rubberbandsList[i])
