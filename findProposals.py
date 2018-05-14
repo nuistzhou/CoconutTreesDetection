@@ -1,11 +1,12 @@
 import os
-import time
 import glob
 import numpy as np
 import cv2
 from PIL import Image
 from skimage.feature import peak_local_max
 from config import Parameters
+import matplotlib.pyplot as plt
+
 
 def cropImage(filename, chopsize):
     image_raw = cv2.imread(filename)
@@ -24,7 +25,7 @@ def cropImage(filename, chopsize):
 
     for j in range(chopRowNr):
         for i in range(chopColNr):
-            tempArray = np.zeros((chopsize, chopsize, 3), dtype = np.int8)
+            tempArray = np.zeros((chopsize, chopsize, 3), dtype = np.uint8)
             # chop at the right bottom corner
             if i == chopColNr - 1 and j == chopRowNr -1:
                 chopArray = image_raw[i * chopsize: (i * chopsize + pixelAddX),
@@ -46,11 +47,10 @@ def cropImage(filename, chopsize):
                                      j * chopsize: (j + 1) * chopsize, :
                                      ]
             chopList.append(tempArray)
-    print height, width
     return chopList, chopColNr, chopRowNr
 
 def createImageFromCrops(chopsize, chopList, chopColNr, chopRowNr):
-    array = np.zeros((chopsize * chopColNr, chopsize * chopRowNr, 3), dtype = np.int8)
+    array = np.zeros((chopsize * chopColNr, chopsize * chopRowNr, 3), dtype = np.uint8)
     counter = 0
     for j in range(chopRowNr):
         for i in range(chopColNr):
@@ -60,7 +60,6 @@ def createImageFromCrops(chopsize, chopList, chopColNr, chopRowNr):
     img = Image.fromarray(array_new, 'RGB')
     img.save('/Users/ping/Documents/thesis/data/rgb_image_ssearch/my.png')
     img.show()
-    # print array_new.shape
 
 def averageCocotrees():
     # Load images into a list of Numpy Array
@@ -81,11 +80,13 @@ def averageCocotrees():
     avgImg.save(Parameters.avgCocoImg)
 
 def putImgAtCenter(img, targetSize):
-    imgArray = cv2.imread(img)
+    imgArray = np.float32(cv2.imread(img)) / 255.
+    imgArray -= np.average(imgArray[:])
+
     w, h = imgArray.shape[:2]
     centerX = targetSize/2 - 1
     centerY = targetSize/2 -1
-    avgImageArr = np.zeros((targetSize, targetSize, 3), np.uint8)
+    avgImageArr = np.zeros((targetSize, targetSize, 3), np.float32)
 
     if w <= targetSize and h <= targetSize:
         avgImageArr[centerX : centerX + w, centerY : centerY + h,:] = imgArray
@@ -94,12 +95,34 @@ def putImgAtCenter(img, targetSize):
     return avgImageArr
 
 def detectProposals(chopArrayList, avgCocoArray):
-    f_avgCoco = np.fft.fft2(avgCocoArray, axes=(0, 1))
-    for chopArray in chopArrayList:
+    """Return the array of proposal centers' pixel coordinates"""
+    f_avgCoco = np.fft.fft2(np.fft.fftshift(avgCocoArray, axes=(0,1)), axes=(0, 1))
+    proposalCentersList = list()
+    for chopArray in chopArrayList[:1]:
         f_chop = np.fft.fft2(chopArray, axes=(0, 1))
         multiplication = np.multiply(f_avgCoco, f_chop)
-        f_inversed = np.fft.ifft2(multiplication)
-        peak_localmax = peak_local_max(f_inversed)
+        f_inversed = np.real(np.fft.ifft2(multiplication,axes=(0,1)))
+        f_inversed = np.average(f_inversed,axis=2)
+        peak_localmax = peak_local_max(f_inversed, indices = True)
+        peak_localmax_5 = peak_local_max(f_inversed, min_distance = 5, indices = True)
+        peak_localmax_10 = peak_local_max(f_inversed, min_distance = 10, indices = True)
+        peak_localmax_15 = peak_local_max(f_inversed, min_distance = 15, indices = True)
+
+        plt.figure(1), plt.imshow(f_inversed)
+        plt.figure(2)
+
+        plt.subplot(2, 2, 1), plt.imshow(chopArray), \
+        plt.plot(peak_localmax[:, 1], peak_localmax[:, 0], 'r+'), plt.title("Minimum peaks distance Not set")
+        plt.subplot(2, 2, 2), plt.imshow(chopArray), \
+        plt.plot(peak_localmax_5[:, 1], peak_localmax_5[:, 0], 'r+'), plt.title("Minimum peaks distance = 5 pixels")
+        plt.subplot(2, 2, 3), plt.imshow(chopArray), \
+        plt.plot(peak_localmax_10[:, 1], peak_localmax_10[:, 0], 'r+'),plt.title("Minimum peaks distance = 10 pixels")
+        plt.subplot(2, 2, 4), plt.imshow(chopArray), \
+        plt.plot(peak_localmax_15[:, 1], peak_localmax_15[:, 0], 'r+'),plt.title("Minimum peaks distance = 15 pixels")
+        proposalCentersList.append(peak_localmax)
+    return proposalCentersList
+
+def calRecallWithAnnotations():
 
 
 
@@ -110,5 +133,6 @@ if __name__ == "__main__":
     # newImage = createImageFromCrops(chopsize, chopList, chopColNr, chopRowNr)
     averageCocotrees()
     avgCocoArray = putImgAtCenter(Parameters.avgCocoImg, chopsize)
-    fourierTransform(Parameters.avgCocoImgEnlarged)
-    detectProposals(chopList, avgCocoArray)
+    proposalCenterList = detectProposals(chopList, avgCocoArray)
+    print 'end'
+
