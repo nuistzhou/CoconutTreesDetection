@@ -15,6 +15,8 @@ class Parameters:
     performanceTestDir = os.path.join(dataPath, "performance_test")
     annotationFile = os.path.join(dataPath, "annotation.pkl")
     maskRgbImage = os.path.join(dataPath, "maskRgbImage")
+    avgCocoImg = os.path.join(dataPath, "result/avgCoco.png")
+    avgCocoImgEnlarged = os.path.join(dataPath, "result/avgCocoEnlarged.png")
 
     def __init__(self, layer):
         self.layer = layer
