@@ -1,6 +1,11 @@
 from qgis.core import *
 from qgis.gui import *
-from PyQt4.QtCore import QFileInfo
+from PyQt4.QtCore import *
+import processing
+from processing.core.Processing import Processing
+Processing.initialize()
+Processing.updateAlgsList()
+
 
 def getLayerByName(layer_name):
         layer = None
@@ -42,3 +47,89 @@ def pixel2XY(layer, pixel_x, pixel_y):
 
     print x,y
     return (x, y)
+
+def geoCoord2PixelPosition(point, top_left_x, top_left_y, pixel_size_x, pixel_size_y):
+    pixPosX = int(round((point.x() - top_left_x) / pixel_size_x))
+    pixPosY = int(round((top_left_y - point.y()) / pixel_size_y))
+    return QgsPoint(pixPosX, pixPosY)
+
+
+def getPointPixelCoordinates(points_layer_name, raster_layer_name):
+    points_layer = getLayerByName(points_layer_name)
+    features_iter = points_layer.getFeatures()
+    features_array = []
+    for feature in features_iter:
+        features_array.append(feature)
+
+    raster_layer = getLayerByName(raster_layer_name)
+    pixel_size_x = raster_layer.rasterUnitsPerPixelX()
+    pixel_size_y = raster_layer.rasterUnitsPerPixelY()
+    top_left_x = raster_layer.extent().xMinimum()
+    top_left_y = raster_layer.extent().yMaximum()
+    pixel_coords_array = []
+    for feature in features_array:
+        point_crs_coord = feature.geometry().asPoint()
+        point_pixel_coords = geoCoord2PixelPosition(point_crs_coord, top_left_x, top_left_y, pixel_size_x, pixel_size_y)
+        pixel_coords_array.append(point_pixel_coords)
+    return pixel_coords_array
+
+def createFeatureLayer(rgbLayerName, pixCoordsList, chopsize):
+    rgb_upper_layer = getLayerByName(rgbLayerName)
+    rgb_crs = rgb_upper_layer.crs()
+
+    pixel_size_x = rgb_upper_layer.rasterUnitsPerPixelX()
+    pixel_size_y = rgb_upper_layer.rasterUnitsPerPixelY()
+    top_left_x = rgb_upper_layer.extent().xMinimum()
+    top_left_y = rgb_upper_layer.extent().yMaximum()
+
+    # create layer
+    vlayer = QgsVectorLayer("Point", "temporary_points", "memory")
+    vlayer.setCrs(rgb_crs, False)
+    # pr = vlayer.dataProvider()
+    # Enter editing mode
+    vlayer.startEditing()
+    vlayer.addAttribute(QgsField("id", QVariant.Int))
+    fields = vlayer.pendingFields()
+    # add features
+    for i, pixCoords in enumerate(pixCoordsList):
+        fet = QgsFeature()
+        fet.setFields(fields, True)
+        x = top_left_x + pixCoords[0] * pixel_size_x
+        y = top_left_y - pixCoords[1] * pixel_size_y
+        fet.setGeometry(QgsGeometry.fromPoint(QgsPoint(x, y)))
+        fet["id"] = i
+        vlayer.addFeatures([fet])
+    vlayer.commitChanges()
+    # Commit changes
+    QgsMapLayerRegistry.instance().addMapLayer(vlayer)
+
+def calCoverage():
+    distNearestPointsFilename = "/Users/ping/Documents/thesis/data/proposal_test/nearest_point_distance.shp"
+    tempPointsLayer = getLayerByName("temporary_points")
+    cocoTreesLayer = getLayerByName("cocotrees_clipped")
+    tempPointsLayer.removeSelection()
+    cocoTreesLayer.removeSelection()
+    processing.runalg('qgis:distancetonearesthub', cocoTreesLayer, tempPointsLayer,
+                              'id',1, 4, distNearestPointsFilename)
+    # Load layer from disk and display in the table of content
+    distNearestPoints = QgsVectorLayer(distNearestPointsFilename, 'nearestPoints_distance', 'ogr')
+    QgsMapLayerRegistry.instance().addMapLayer(distNearestPoints)
+    # Count number of coconut trees in total
+    # Select features which are within 15 pixels distance
+    distance = 0.0859006 * 12 # 12 pixels distance in meters
+    query = QgsExpression(r'"HubDist" <= {0}'.format(distance))
+    selection = distNearestPoints.getFeatures(QgsFeatureRequest(query))
+    ids = [k.id() for k in selection]
+    distNearestPoints.setSelectedFeatures(ids)
+
+    feats_count = cocoTreesLayer.featureCount()
+    selectedFeats_count = distNearestPoints.selectedFeatureCount()
+    coverage_percentage = float(selectedFeats_count) / float(feats_count) * 100
+    print "The number of coconut trees in total is {0}".format(feats_count)
+    print "Total number of proposals is {0}".format(tempPointsLayer.featureCount())
+    print "The number of proposals within 15 pixels of coconut trees is {0}".format(selectedFeats_count)
+    print "The proposals cover {:4.2f}% of all coconut annotations!".\
+        format(coverage_percentage)
+    QgsMapLayerRegistry.instance().removeMapLayers(["temporary_points", "nearestPoints_distance"])
+    return coverage_percentage
+

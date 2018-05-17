@@ -17,6 +17,7 @@ class Parameters:
     maskRgbImage = os.path.join(dataPath, "maskRgbImage")
     avgCocoImg = os.path.join(dataPath, "result/avgCoco.png")
     avgCocoImgEnlarged = os.path.join(dataPath, "result/avgCocoEnlarged.png")
+    resultPath = "/Users/ping/Documents/thesis/results"
 
     def __init__(self, layer):
         self.layer = layer

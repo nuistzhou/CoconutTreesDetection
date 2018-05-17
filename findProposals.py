@@ -1,12 +1,16 @@
 import os
+import time
 import glob
 import numpy as np
 import cv2
+from qgis.core import *
+from PyQt4.QtCore import *
 from PIL import Image
 from skimage.feature import peak_local_max
 from config import Parameters
 import matplotlib.pyplot as plt
-
+import imp, tools
+imp.reload(tools)
 
 def cropImage(filename, chopsize):
     image_raw = cv2.imread(filename)
@@ -58,81 +62,92 @@ def createImageFromCrops(chopsize, chopList, chopColNr, chopRowNr):
             counter += 1
     array_new = np.transpose(array, (1,0,2))
     img = Image.fromarray(array_new, 'RGB')
-    img.save('/Users/ping/Documents/thesis/data/rgb_image_ssearch/my.png')
+    img.save('/Users/ping/Documents/thesis/data/proposal_test/stiched.png')
     img.show()
 
-def averageCocotrees():
-    # Load images into a list of Numpy Array
-    imageDir = "/Users/ping/Documents/thesis/data/patchImages/lower/coco"
-    os.chdir(imageDir)
-    filenameList = glob.glob("*.png")
-    w, h = Image.open(filenameList[0]).size
-    nrFiles = len(filenameList)
-
-    # Create a numpy array of floats to store the average (assume RGB images)
-    avgImageArr = np.zeros((h, w, 3), np.float)
-    # Build up average pixel intensities, casting each image as an array of floats
-    for im in filenameList:
-        imgArr = np.array(Image.open(im), dtype=np.float)
-        avgImageArr = avgImageArr + imgArr / nrFiles
-    avgImageArr = np.array(np.round(avgImageArr), dtype=np.uint8)
-    avgImg = Image.fromarray(avgImageArr, 'RGB')
-    avgImg.save(Parameters.avgCocoImg)
-
-def putImgAtCenter(img, targetSize):
-    imgArray = np.float32(cv2.imread(img)) / 255.
-    imgArray -= np.average(imgArray[:])
-
-    w, h = imgArray.shape[:2]
-    centerX = targetSize/2 - 1
-    centerY = targetSize/2 -1
-    avgImageArr = np.zeros((targetSize, targetSize, 3), np.float32)
-
-    if w <= targetSize and h <= targetSize:
-        avgImageArr[centerX : centerX + w, centerY : centerY + h,:] = imgArray
-    avgImg = Image.fromarray(avgImageArr, 'RGB')
-    avgImg.save(Parameters.avgCocoImgEnlarged)
-    return avgImageArr
-
-def detectProposals(chopArrayList, avgCocoArray):
+def detectProposals(chopArrayList):
     """Return the array of proposal centers' pixel coordinates"""
-    f_avgCoco = np.fft.fft2(np.fft.fftshift(avgCocoArray, axes=(0,1)), axes=(0, 1))
+    os.chdir(Parameters.resultPath)
+    avgCocoNpyFilenames = glob.glob("avgCocotrees*enlarged.npy")
+    f_avgCocoList = list()
+    for avgCocoFilename in avgCocoNpyFilenames:
+        avgCocoArray = np.load(avgCocoFilename)
+        f_avgCoco = np.fft.fft2(np.fft.fftshift(avgCocoArray, axes=(0,1)), axes=(0, 1))
+        f_avgCocoList.append(f_avgCoco)
+
     proposalCentersList = list()
-    for chopArray in chopArrayList[:1]:
+    for chopArray in chopArrayList:
         f_chop = np.fft.fft2(chopArray, axes=(0, 1))
-        multiplication = np.multiply(f_avgCoco, f_chop)
-        f_inversed = np.real(np.fft.ifft2(multiplication,axes=(0,1)))
-        f_inversed = np.average(f_inversed,axis=2)
-        peak_localmax = peak_local_max(f_inversed, indices = True)
-        peak_localmax_5 = peak_local_max(f_inversed, min_distance = 5, indices = True)
-        peak_localmax_10 = peak_local_max(f_inversed, min_distance = 10, indices = True)
-        peak_localmax_15 = peak_local_max(f_inversed, min_distance = 15, indices = True)
+        f_inversedList = list()
+        for f_avgCoco in f_avgCocoList:
+            multiplication = np.multiply(f_avgCoco, f_chop)
+            f_inversed = np.real(np.fft.ifft2(multiplication,axes=(0,1)))
+            f_inversed = np.average(f_inversed,axis=2)
+            f_inversedList.append(f_inversed)
 
-        plt.figure(1), plt.imshow(f_inversed)
-        plt.figure(2)
 
-        plt.subplot(2, 2, 1), plt.imshow(chopArray), \
-        plt.plot(peak_localmax[:, 1], peak_localmax[:, 0], 'r+'), plt.title("Minimum peaks distance Not set")
-        plt.subplot(2, 2, 2), plt.imshow(chopArray), \
-        plt.plot(peak_localmax_5[:, 1], peak_localmax_5[:, 0], 'r+'), plt.title("Minimum peaks distance = 5 pixels")
-        plt.subplot(2, 2, 3), plt.imshow(chopArray), \
-        plt.plot(peak_localmax_10[:, 1], peak_localmax_10[:, 0], 'r+'),plt.title("Minimum peaks distance = 10 pixels")
-        plt.subplot(2, 2, 4), plt.imshow(chopArray), \
-        plt.plot(peak_localmax_15[:, 1], peak_localmax_15[:, 0], 'r+'),plt.title("Minimum peaks distance = 15 pixels")
+        distanceList = [1]
+        peak_localmax = list()
+        for distance in distanceList[:1]:
+            for f_inversed in f_inversedList:
+                peak_localMax_temp = peak_local_max(f_inversed, min_distance =distance, indices = True)
+                peak_localMax_temp = peak_localMax_temp.tolist()
+                peak_localmax.extend(peak_localMax_temp)
+                # for peak_localMaxPair in peak_localMax_temp:
+                #     if peak_localMaxPair not in peak_localmax:
+                #         peak_localmax.append(peak_localMaxPair)
+
+        peak_localmax = map(list, (set(map(tuple,peak_localmax))))
+        # peak_localmax = peak_local_max(f_inversed, min_distance = i, indices = True)
+        # peak_localmax_5 = peak_local_max(f_inversed, min_distance = 5, indices = True)
+        # peak_localmax_10 = peak_local_max(f_inversed, min_distance = 10, indices = True)
+        # peak_localmax_15 = peak_local_max(f_inversed, min_distance = 15, indices = True)
+
+        # plt.figure(1), plt.imshow(f_inversed)
+        # plt.figure(2)
+        #
+        # plt.subplot(2, 2, 1), plt.imshow(chopArray), \
+        # plt.plot(peak_localmax[:, 1], peak_localmax[:, 0], 'r+'), plt.title("Minimum peaks distance Not set")
+        # plt.subplot(2, 2, 2), plt.imshow(chopArray), \
+        # plt.plot(peak_localmax_5[:, 1], peak_localmax_5[:, 0], 'r+'), plt.title("Minimum peaks distance = 5 pixels")
+        # plt.subplot(2, 2, 3), plt.imshow(chopArray), \
+        # plt.plot(peak_localmax_10[:, 1], peak_localmax_10[:, 0], 'r+'),plt.title("Minimum peaks distance = 10 pixels")
+        # plt.subplot(2, 2, 4), plt.imshow(chopArray), \
+        # plt.plot(peak_localmax_15[:, 1], peak_localmax_15[:, 0], 'r+'),plt.title("Minimum peaks distance = 15 pixels")
         proposalCentersList.append(peak_localmax)
+        # print len(proposalCentersList)
+        # print len(peak_localmax)
+
     return proposalCentersList
 
-def calRecallWithAnnotations():
+def calPerformance(proposalCenterList, chopColNr, chopsize):
+    """Validate the performance by calculating the recall"""
+    rgb_ssearch_layer_name = "rgb_image_clipped"
+
+    centerList = list()
+    for i, chop_proposal in enumerate(proposalCenterList):
+        shiftCol = i % chopColNr
+        shiftRow = i / chopColNr
+        shiftX, shiftY = (chopsize * shiftCol, chopsize * shiftRow)
+        for centerX, centerY in chop_proposal:
+            centerList.append((centerX + shiftX, centerY + shiftY))
+    tools.createFeatureLayer(rgb_ssearch_layer_name, centerList, chopsize)
+    tools.calCoverage()
 
 
 
-if __name__ == "__main__":
-    rgb_image_filename = "/Users/ping/Documents/thesis/data/rgb_image_ssearch/rgb_image_ssearch.tif"
-    chopsize = 1024
-    chopList, chopColNr, chopRowNr = cropImage(rgb_image_filename, chopsize)
-    # newImage = createImageFromCrops(chopsize, chopList, chopColNr, chopRowNr)
-    averageCocotrees()
-    avgCocoArray = putImgAtCenter(Parameters.avgCocoImg, chopsize)
-    proposalCenterList = detectProposals(chopList, avgCocoArray)
-    print 'end'
+# if __name__ == "__main__":
+timeStart = time.time()
+rgb_image_filename = "/Users/ping/Documents/thesis/data/proposal_test/rgb_image_clipped.tif"
+chopsize = 1024
+print "working on chopping..."
+chopList, chopColNr, chopRowNr = cropImage(rgb_image_filename, chopsize)
+print len(chopList), chopColNr, chopRowNr
+print "working on detect proposals..."
+proposalCenterList = detectProposals(chopList)
+print "working on calculate performance..."
+calPerformance(proposalCenterList, chopColNr, chopsize)
 
+timeEnd = time.time()
+timeUsed = timeEnd - timeStart
+print "Time used for calculate performance is {0}".format(timeUsed/60)
