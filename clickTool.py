@@ -12,16 +12,18 @@ from config import Parameters
 
 class ClickTool(QgsMapTool):
 
-    def __init__(self, config, canvas, layer):
+    def __init__(self, config, canvas, layer, imgArray):
         self.config = config
         self.canvas = canvas
         self.layer = layer
+        self.imgArray = imgArray
         self.pointArray = list()
         self.point = None
         self.adding = False # Switch for adding annotations
         self.deleting = False # Switch for deleting annotations
         self.rubberbandsList = list()
         self.annotationList = list()
+        self.patchList = list()
 
         QgsMapTool.__init__(self, self.canvas)
 
@@ -34,6 +36,25 @@ class ClickTool(QgsMapTool):
             return QgsPoint(self.config.topLeftX + pixPosX * self.config.pixSizeX,
                             self.config.topLeftY - pixPosY * self.config.pixSizeY)
 
+    def mapCoords2PixelCoords(self, coordsList):
+        """Convert a geometry's map coordinates into a list of pixels' coordinates
+        coordsList: a list of bounding points of the geometry"""
+        pixelCoordsList = list()
+        for i, coords in enumerate(coordsList):
+            if i % 2 == 0:
+                pixPosX = int(round((coords[0] - self.config.topLeftX) / self.config.pixSizeX))
+                pixPosY = int(round((self.config.topLeftY - coords[1]) / self.config.pixSizeY))
+                pixelCoordsList.append((pixPosX, pixPosY))
+            else:
+                continue
+        return pixelCoordsList
+
+    def extractPatchAsArray(self, boundingBoxPointsCoordsList):
+        topLeftX, topLeftY = boundingBoxPointsCoordsList[0]
+        bottomRightX, bottomRightY = boundingBoxPointsCoordsList[1]
+        patchArray = self.imgArray[topLeftY: bottomRightY, topLeftX : bottomRightX, :]
+        return patchArray
+
     def canvasPressEvent(self, event):
         self.point = self.canvas.getCoordinateTransform()
         self.point = self.point.toMapCoordinates(event.pos().x(), event.pos().y())
@@ -41,6 +62,7 @@ class ClickTool(QgsMapTool):
         if self.adding == True:
             # self.pointArray.append((self.point.x(), self.point.y()))
             self.boundingBoxPointsCoords = self.generateBoundingPointsCoordinates()
+
             self.rubberband = self.createRubberbands(self.boundingBoxPointsCoords)
             self.rubberband.show()
 
@@ -49,6 +71,11 @@ class ClickTool(QgsMapTool):
 
             # Add rubberband to the self.rubberbandsList
             self.rubberbandsList.append(self.rubberband)
+
+            # Return bounding box top-left and bottom-right point pixel coordinates
+
+            pointsArrayList = self.mapCoords2PixelCoords(self.boundingBoxPointsCoords)
+            self.patchList.append(self.extractPatchAsArray(pointsArrayList))
 
 
         elif self.deleting == True:
@@ -66,9 +93,6 @@ class ClickTool(QgsMapTool):
         """Remove certain rubberband when clicking on in the boundingbox
         @type rubberband: QgsRubberBand"""
         # rubberbands = [i for i in self.canvas.scene().items() if isinstance(i, QgsRubberBand)]
-
-        print len(self.annotationList)
-        print len(self.rubberbandsList)
         for i, annotation in enumerate(self.annotationList):
             pt1_x, pt1_y = annotation[0]
             pt3_x, pt3_y = annotation[2]
@@ -79,6 +103,7 @@ class ClickTool(QgsMapTool):
                 self.annotationList.pop(i)
                 self.canvas.scene().removeItem(self.rubberbandsList[i])
                 self.rubberbandsList.pop(i)
+                self.patchList.pop(i)
                 break
 
         with open(Parameters.annotationFile, 'w') as f:

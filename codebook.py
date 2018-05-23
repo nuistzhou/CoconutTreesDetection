@@ -6,6 +6,15 @@ from sklearn.cluster import KMeans
 import cv2
 import bovw_utils
 
+def extract_code_for_largeImage(imgArray):
+	codebook_size = 200
+	# read images and extract descriptors
+	decriptors = bovw_utils.extract_local_descriptor_ImageArray(imgArray)
+
+	codebook = kmeans_codebook(decriptors, codebook_size)
+
+	return codebook
+
 def merge_datasets(list_datasets):
 	output_nsamples = sum([dataset.shape[0] for dataset in list_datasets])
 	nfeats = list_datasets[0].shape[1]
@@ -91,31 +100,39 @@ def fast_stratified_kmeans_codebook(list_datasets, labels, codebook_size, max_ni
 
 def main():
 	"""
-	python codebook.py ~/imagery/coco2_dataset/lower/all/ 200 random ~/imagery/coco2_dataset/random_codebook200.npy
-	python bovw.py ~/imagery/coco2_dataset/lower/all/ ~/imagery/coco2_dataset/random_codebook200.npy ~/imagery/coco2_dataset/bow_sift_lower_features.npy ~/imagery/coco2_dataset/bow_sift_lower_labels.npy
-	python bovw.py ~/imagery/coco2_dataset/upper/all/ ~/imagery/coco2_dataset/random_codebook200.npy ~/imagery/coco2_dataset/bow_sift_upper_features.npy ~/imagery/coco2_dataset/bow_sift_upper_labels.npy
-	python classifyImagePatches.py ~/imagery/coco2_dataset/bow_sift_lower_features.npy ~/imagery/coco2_dataset/bow_sift_lower_labels.npy ~/imagery/coco2_dataset/bow_sift_upper_features.npy ~/imagery/coco2_dataset/bow_sift_upper_labels.npy svm
-
-	python codebook.py /Users/ping/thesis/data/patchImages/lower/all/ 200 fast_st_kmeans /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook200.npy
-	python bovw.py /Users/ping/thesis/data/patchImages/lower/all/ /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook200.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_lower_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_lower_labels.npy
-	python bovw.py /Users/ping/thesis/data/patchImages/upper/all/ /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook200.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_labels.npy
-	python classifyImagePatches.py /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_lower_labels.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_labels.npy linear_svm
-
+### SIFT
+	# 100 Codebook SURF
 	python codebook.py /Users/ping/thesis/data/patchImages/lower/all/ 100 fast_st_kmeans /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook100_sift.npy
 	python bovw.py /Users/ping/thesis/data/patchImages/lower/all/ /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook100_sift.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow100_sift_lower_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow100_sift_lower_labels.npy
 	python bovw.py /Users/ping/thesis/data/patchImages/upper/all/ /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook100_sift.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow100_sift_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow100_sift_upper_labels.npy
 	python classifyImagePatches.py /Users/ping/thesis/data/featureDescriptors/bow_features/bow100_sift_lower_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow100_sift_lower_labels.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow100_sift_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow100_sift_upper_labels.npy linear_svm
 
+	# 50 Codebook SIFT
 	python codebook.py /Users/ping/thesis/data/patchImages/lower/all/ 50 fast_st_kmeans /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook50_sift.npy
 	python bovw.py /Users/ping/thesis/data/patchImages/lower/all/ /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook50_sift.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow50_sift_lower_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow50_sift_lower_labels.npy
 	python bovw.py /Users/ping/thesis/data/patchImages/upper/all/ /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook50_sift.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow50_sift_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow50_sift_upper_labels.npy
 	python classifyImagePatches.py /Users/ping/thesis/data/featureDescriptors/bow_features/bow50_sift_lower_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow50_sift_lower_labels.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow50_sift_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow50_sift_upper_labels.npy linear_svm
 
+	## 200 Codebook SIFT
+	python codebook.py ~/imagery/coco2_dataset/lower/all/ 200 random ~/imagery/coco2_dataset/random_codebook200.npy
+	python bovw.py ~/imagery/coco2_dataset/lower/all/ ~/imagery/coco2_dataset/random_codebook200.npy ~/imagery/coco2_dataset/bow_sift_lower_features.npy ~/imagery/coco2_dataset/bow_sift_lower_labels.npy
+	python bovw.py ~/imagery/coco2_dataset/upper/all/ ~/imagery/coco2_dataset/random_codebook200.npy ~/imagery/coco2_dataset/bow_sift_upper_features.npy ~/imagery/coco2_dataset/bow_sift_upper_labels.npy
+	python classifyImagePatches.py ~/imagery/coco2_dataset/bow_sift_lower_features.npy ~/imagery/coco2_dataset/bow_sift_lower_labels.npy ~/imagery/coco2_dataset/bow_sift_upper_features.npy ~/imagery/coco2_dataset/bow_sift_upper_labels.npy svm
+
+### SURF
+	# 200 Codebook SURF
+	python codebook.py /Users/ping/thesis/data/patchImages/lower/all/ 200 fast_st_kmeans /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook200.npy
+	python bovw.py /Users/ping/thesis/data/patchImages/lower/all/ /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook200.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_lower_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_lower_labels.npy
+	python bovw.py /Users/ping/thesis/data/patchImages/upper/all/ /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook200.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_labels.npy
+	python classifyImagePatches.py /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_lower_labels.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_labels.npy linear_svm
+
+	# 100 Codebook SURF
 	python codebook.py /Users/ping/thesis/data/patchImages/lower/all/ 100 fast_st_kmeans /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook100_surf.npy
 	python bovw.py /Users/ping/thesis/data/patchImages/lower/all/ /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook100_surf.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow100_surf_lower_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow100_surf_lower_labels.npy
 	python bovw.py /Users/ping/thesis/data/patchImages/upper/all/ /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook100_surf.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow100_surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow100_surf_upper_labels.npy
 	python classifyImagePatches.py /Users/ping/thesis/data/featureDescriptors/bow_features/bow100_surf_lower_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow100_surf_lower_labels.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow100_surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow100_surf_upper_labels.npy linear_svm
 
+	# 50 Codebook SURF
 	python codebook.py /Users/ping/thesis/data/patchImages/lower/all/ 50 fast_st_kmeans /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook50_surf.npy
 	python bovw.py /Users/ping/thesis/data/patchImages/lower/all/ /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook50_surf.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow50_surf_lower_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow50_surf_lower_labels.npy
 	python bovw.py /Users/ping/thesis/data/patchImages/upper/all/ /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook50_surf.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow50_surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow50_surf_upper_labels.npy

@@ -9,8 +9,8 @@ def extract_local_descriptors(img_dir):
     # set descriptor method
     # desc_method = cv2.SURF(1000)
 
-    # desc_method = cv2.xfeatures2d.SIFT_create()
-    desc_method = cv2.xfeatures2d.SURF_create(400, extended=True)
+    desc_method = cv2.xfeatures2d.SIFT_create()
+    # desc_method = cv2.xfeatures2d.SURF_create(400, extended=True)
 
     # get image filenames inside the image directory input
     img_files = [ f for f in os.listdir(img_dir)]
@@ -43,3 +43,29 @@ def extract_local_descriptors(img_dir):
         print "img_path {} npoints {}".format(img_path, descriptors.shape[0])
 
     return list_decriptors, list_img_labels
+
+
+def extract_local_descriptor_ImageArrayList(imgArrayList):
+    step_size = 5
+    labels = list()
+    descriptorList = list()
+    desc_method = cv2.xfeatures2d.SIFT_create()
+    for imgArray in imgArrayList:
+        kps = [cv2.KeyPoint(x, y, step_size) for y in range(0, imgArray.shape[0], step_size)
+               for x in range(0, imgArray.shape[1], step_size)]
+        kps, descriptors = desc_method.compute(imgArray, kps)
+        labels.append(1)
+        descriptorList.append(descriptors)
+
+    return descriptorList, labels
+
+def extract_local_descriptor_ImageArray(imgArray):
+    step_size = 5
+    desc_method = cv2.xfeatures2d.SIFT_create()
+    kps = [cv2.KeyPoint(x, y, step_size) for y in range(0, imgArray.shape[0], step_size)
+           for x in range(0, imgArray.shape[1], step_size)]
+    kps, descriptors = desc_method.compute(imgArray, kps)
+
+    return descriptors
+
+

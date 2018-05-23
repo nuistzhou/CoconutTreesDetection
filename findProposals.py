@@ -85,19 +85,31 @@ def detectProposals(chopArrayList):
             f_inversed = np.average(f_inversed,axis=2)
             f_inversedList.append(f_inversed)
 
+        f_inversedArray = np.array(f_inversedList)
+        # print "The dimension of the f_inversedArray is {0})".format(f_inversedArray.shape)
+        f_inversedArrayStackMax = f_inversedArray.max(axis = 0)
+        # distanceList = [1]
+        # peak_localmax = list()
+        # avgLocalPeak = np.zeros((90, 90), dtype=np.uint8)
+        # for distance in distanceList[:1]:
+        #     for f_inversed in f_inversedList:
 
-        distanceList = [1]
-        peak_localmax = list()
-        for distance in distanceList[:1]:
-            for f_inversed in f_inversedList:
-                peak_localMax_temp = peak_local_max(f_inversed, min_distance =distance, indices = True)
-                peak_localMax_temp = peak_localMax_temp.tolist()
-                peak_localmax.extend(peak_localMax_temp)
-                # for peak_localMaxPair in peak_localMax_temp:
-                #     if peak_localMaxPair not in peak_localmax:
-                #         peak_localmax.append(peak_localMaxPair)
+        # distanceList = [1, 5, 10, 15]
+        # localPeaksList = list()
+        # for distance in distanceList:
+        distance = 10
+        f_inversedArrayStackLocalPeak = peak_local_max(f_inversedArrayStackMax, min_distance =distance, indices = True)
+        # localPeaksList.append(f_inversedArrayStackLocalPeak)
+        # Every chop has 4 lists based on different "min_distance" parameter specified above
+        proposalCentersList.append(f_inversedArrayStackLocalPeak)
 
-        peak_localmax = map(list, (set(map(tuple,peak_localmax))))
+
+                # peak_localMax_temp = peak_local_max(f_inversed, min_distance =distance, indices = True)
+                # peak_localMax_temp = peak_localMax_temp.tolist()
+                # peak_localmax.extend(peak_localMax_temp)
+
+
+        # peak_localmax = map(list, (set(map(tuple,peak_localmax))))
         # peak_localmax = peak_local_max(f_inversed, min_distance = i, indices = True)
         # peak_localmax_5 = peak_local_max(f_inversed, min_distance = 5, indices = True)
         # peak_localmax_10 = peak_local_max(f_inversed, min_distance = 10, indices = True)
@@ -114,7 +126,7 @@ def detectProposals(chopArrayList):
         # plt.plot(peak_localmax_10[:, 1], peak_localmax_10[:, 0], 'r+'),plt.title("Minimum peaks distance = 10 pixels")
         # plt.subplot(2, 2, 4), plt.imshow(chopArray), \
         # plt.plot(peak_localmax_15[:, 1], peak_localmax_15[:, 0], 'r+'),plt.title("Minimum peaks distance = 15 pixels")
-        proposalCentersList.append(peak_localmax)
+        # proposalCentersList.append(peak_localmax)
         # print len(proposalCentersList)
         # print len(peak_localmax)
 

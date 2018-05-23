@@ -31,9 +31,12 @@ from PyQt4.QtGui import *
 from qgis.gui import *
 from qgis.core import *
 import pickle
-
+import numpy as np
+from PIL import Image
 from clickTool import *
+from tools import *
 from config import Parameters
+from codebook import extract_code_for_largeImage
 
 
 # Initialize Qt resources from filePickle resources.py
@@ -58,6 +61,7 @@ class CoconutTreesDetection:
         # Save reference to the QGIS interface
         self.iface = iface
         self.canvas = self.iface.mapCanvas()
+        self.codebook = None
 
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
@@ -87,8 +91,6 @@ class CoconutTreesDetection:
         # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'CoconutTreesDetection')
         self.toolbar.setObjectName(u'CoconutTreesDetection')
-
-        #print "** INITIALIZING CoconutTreesDetection"
 
         self.pluginIsActive = False
         self.dockwidget = None
@@ -196,16 +198,20 @@ class CoconutTreesDetection:
             callback=self.run,
             parent=self.iface.mainWindow())
 
-        self.layer = self.getLayerByName('rgb_image')
+        imgFilename = self.iface.activeLayer().dataProvider().dataSourceUri()
+        self.layer = self.getLayerByName('rgb_image_clipped')
+        self.imgArray = np.array(Image.open(imgFilename))
         self.config = Parameters(self.layer)
         self.config.readRasterConfig()
-        self.canvasClicked = ClickTool(self.config, self.canvas, self.layer)
+        self.canvasClicked = ClickTool(self.config, self.canvas, self.layer, self.imgArray)
         self.canvas.setMapTool(self.canvasClicked)
 
         self.uiDockWidgetAnnotation.btnLoadAnnotationFile.clicked.connect(self.loadAnnotationsAndDisplay)
         self.uiDockWidgetAnnotation.btnSaveAnnotationFile.clicked.connect(self.saveAnnotationFile)
         self.uiDockWidgetAnnotation.btnAddAnnotation.clicked.connect(self.addAnnotations)
         self.uiDockWidgetAnnotation.btnDeleteAnnotation.clicked.connect(self.deleteAnnotation)
+        self.uiDockWidgetAnnotation.btnClassify.clicked.connect(self.classify)
+        self.uiDockWidgetAnnotation.btnPreprocess.clicked.connect(self.preprocess)
 
         #-------------------------------------------------------------------
         # Add function for auto-save later...
@@ -236,6 +242,7 @@ class CoconutTreesDetection:
             try:
                 with open(Parameters.annotationFile, "r") as filePickle_read:
                     self.canvasClicked.annotationList = pickle.load(filePickle_read)
+
                     QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Loaded!")
             except EOFError:
                     QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Empty annotation file!")
@@ -259,6 +266,18 @@ class CoconutTreesDetection:
         self.canvasClicked.adding = False # Deactivate the adding activity
         self.canvasClicked.deleting = True
 
+    def preprocess(self):
+        """Build the Bag of Visual Words codebook and create sliding windows for grid search"""
+        self.canvasClicked.adding = False
+        self.canvasClicked.deleting = False
+        self.codebook = extract_code_for_largeImage(self.imgArray)
+
+    def classify(self):
+        """Do the classification job here"""
+        self.canvasClicked.adding = False
+        self.canvasClicked.deleting = False
+        patchArrayList = self.canvasClicked.patchList
+        pass
     def autosavePickleFile(self):
         while True:
             if len(self.canvasClicked.annotationList) != 0:

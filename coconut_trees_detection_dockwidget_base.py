@@ -40,6 +40,12 @@ class Ui_DockWidget(object):
         self.btnSaveAnnotationFile = QtGui.QPushButton(self.dockWidgetContents)
         self.btnSaveAnnotationFile.setGeometry(QtCore.QRect(180, 50, 110, 32))
         self.btnSaveAnnotationFile.setObjectName(_fromUtf8("btnSaveAnnotationFile"))
+        self.btnClassify = QtGui.QPushButton(self.dockWidgetContents)
+        self.btnClassify.setGeometry(QtCore.QRect(180, 170, 110, 32))
+        self.btnClassify.setObjectName(_fromUtf8("btnClassify"))
+        self.btnPreprocess = QtGui.QPushButton(self.dockWidgetContents)
+        self.btnPreprocess.setGeometry(QtCore.QRect(50, 170, 110, 32))
+        self.btnPreprocess.setObjectName(_fromUtf8("btnPreprocess"))
 
 
         # #-----------widget test for accessing mouse coordinates, remove later
@@ -57,4 +63,8 @@ class Ui_DockWidget(object):
         self.btnDeleteAnnotation.setText(_translate("DockWidget", "Delete", None))
         self.btnLoadAnnotationFile.setText(_translate("DockWidget", "Load", None))
         self.btnSaveAnnotationFile.setText(_translate("DockWidget", "Save", None))
+        self.btnClassify.setText(_translate("DockWidget", "Classify", None))
+        self.btnPreprocess.setText(_translate("DockWidget", "Preprocess", None))
+
+
 
