@@ -5,6 +5,7 @@ class Parameters:
     dataPath = "/Users/ping/Documents/thesis/data"
     samplePatchSize = 90
     maskPatchSize = 90*2
+    strideSize = 25
     cocoVecLayer = "coconutTrees"
     rgbImage = os.path.join(dataPath, "rgb_image.tif")
     patchesNumpyArray = os.path.join(dataPath, "patchesNumpyArrays")

@@ -15,6 +15,20 @@ def extract_code_for_largeImage(imgArray):
 
 	return codebook
 
+
+def extract_code_for_Images_List(imgArrayList):
+	codebook_size = 200
+	max_nimages_per_class = 50
+	# read images and extract descriptors
+	decriptorsList, labelsList = bovw_utils.extract_local_descriptor_ImageArrayList(imgArrayList)
+
+	print "descriptors extracted!"
+
+	codebook = fast_stratified_kmeans_codebook(decriptorsList, labelsList, codebook_size, max_nimages_per_class)
+
+	print "Codebook created!"
+	return codebook
+
 def merge_datasets(list_datasets):
 	output_nsamples = sum([dataset.shape[0] for dataset in list_datasets])
 	nfeats = list_datasets[0].shape[1]

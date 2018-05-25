@@ -23,7 +23,7 @@ class ClickTool(QgsMapTool):
         self.deleting = False # Switch for deleting annotations
         self.rubberbandsList = list()
         self.annotationList = list()
-        self.patchList = list()
+        self.patchArrayList = list()
 
         QgsMapTool.__init__(self, self.canvas)
 
@@ -75,7 +75,7 @@ class ClickTool(QgsMapTool):
             # Return bounding box top-left and bottom-right point pixel coordinates
 
             pointsArrayList = self.mapCoords2PixelCoords(self.boundingBoxPointsCoords)
-            self.patchList.append(self.extractPatchAsArray(pointsArrayList))
+            self.patchArrayList.append(self.extractPatchAsArray(pointsArrayList))
 
 
         elif self.deleting == True:
@@ -103,7 +103,7 @@ class ClickTool(QgsMapTool):
                 self.annotationList.pop(i)
                 self.canvas.scene().removeItem(self.rubberbandsList[i])
                 self.rubberbandsList.pop(i)
-                self.patchList.pop(i)
+                self.patchArrayList.pop(i)
                 break
 
         with open(Parameters.annotationFile, 'w') as f:

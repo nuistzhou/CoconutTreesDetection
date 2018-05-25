@@ -46,7 +46,7 @@ def extract_local_descriptors(img_dir):
 
 
 def extract_local_descriptor_ImageArrayList(imgArrayList):
-    step_size = 5
+    step_size = 15
     labels = list()
     descriptorList = list()
     desc_method = cv2.xfeatures2d.SIFT_create()
@@ -56,11 +56,12 @@ def extract_local_descriptor_ImageArrayList(imgArrayList):
         kps, descriptors = desc_method.compute(imgArray, kps)
         labels.append(1)
         descriptorList.append(descriptors)
+        print "descriptor added!"
 
     return descriptorList, labels
 
 def extract_local_descriptor_ImageArray(imgArray):
-    step_size = 5
+    step_size = 15
     desc_method = cv2.xfeatures2d.SIFT_create()
     kps = [cv2.KeyPoint(x, y, step_size) for y in range(0, imgArray.shape[0], step_size)
            for x in range(0, imgArray.shape[1], step_size)]

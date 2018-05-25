@@ -47,6 +47,22 @@ def extractRandomPatchCenterFromList(maskMatrix, numberOfSamples):
 
     return patchCenterArrayList, maskMatrix
 
+def extractRandomPatchCenterFromListWithoutMask(numberOfSamples, imgHeight, imgWidth):
+    counter = 0
+    patchCenterArrayList = list()
+    while counter < numberOfSamples:
+        center_y = randint(0, imgHeight - 1)
+        center_x = randint(0, imgWidth - 1)
+
+        if ((center_y - Parameters.samplePatchSize <0) or (center_x - Parameters.samplePatchSize < 0)
+            or (center_y + Parameters.samplePatchSize > imgHeight) or
+            (center_x + Parameters.samplePatchSize > imgWidth)):
+            continue
+        patchCenterArrayList.append((center_x, center_y))
+        counter += 1
+
+    return patchCenterArrayList
+
 def extractRandomPatchesAsNpy(randomPatchesCenterArrayList, upperOrLower):
     image = gdal.Open(Parameters.rgbImage).ReadAsArray()
     image = np.transpose(image, (1, 2, 0))

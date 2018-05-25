@@ -33,10 +33,14 @@ from qgis.core import *
 import pickle
 import numpy as np
 from PIL import Image
+from sklearn import svm
+import cv2
 from clickTool import *
 from tools import *
 from config import Parameters
-from codebook import extract_code_for_largeImage
+from codebook import extract_code_for_Images_List
+from bovw import extract_bovw_features
+from createRandomSamplePatches import extractRandomPatchCenterFromListWithoutMask
 
 
 # Initialize Qt resources from filePickle resources.py
@@ -198,9 +202,13 @@ class CoconutTreesDetection:
             callback=self.run,
             parent=self.iface.mainWindow())
 
-        imgFilename = self.iface.activeLayer().dataProvider().dataSourceUri()
+        # imgFilename = self.iface.activeLayer().dataProvider().dataSourceUri()
+        self.imgFilename = "/Users/ping/Documents/thesis/data/proposal_test/rgb_image_clipped.tif"
         self.layer = self.getLayerByName('rgb_image_clipped')
-        self.imgArray = np.array(Image.open(imgFilename))
+        self.windowArrayList = list()
+        self.imgArray = cv2.imread(self.imgFilename)
+
+
         self.config = Parameters(self.layer)
         self.config.readRasterConfig()
         self.canvasClicked = ClickTool(self.config, self.canvas, self.layer, self.imgArray)
@@ -212,6 +220,9 @@ class CoconutTreesDetection:
         self.uiDockWidgetAnnotation.btnDeleteAnnotation.clicked.connect(self.deleteAnnotation)
         self.uiDockWidgetAnnotation.btnClassify.clicked.connect(self.classify)
         self.uiDockWidgetAnnotation.btnPreprocess.clicked.connect(self.preprocess)
+
+
+
 
         #-------------------------------------------------------------------
         # Add function for auto-save later...
@@ -261,23 +272,105 @@ class CoconutTreesDetection:
         """Call this function to get clicked point coordinates after pressed the 'Add' button"""
         self.canvasClicked.adding = True
         self.canvasClicked.deleting = False
+        self.canvas.setMapTool(self.canvasClicked)
+
+
     def deleteAnnotation(self):
         """Delete clicked annotations on the canvas"""
         self.canvasClicked.adding = False # Deactivate the adding activity
         self.canvasClicked.deleting = True
+        self.canvas.setMapTool(self.canvasClicked)
 
     def preprocess(self):
         """Build the Bag of Visual Words codebook and create sliding windows for grid search"""
         self.canvasClicked.adding = False
         self.canvasClicked.deleting = False
-        self.codebook = extract_code_for_largeImage(self.imgArray)
+        imgHeight = self.imgArray.shape[0]
+        imgWidth = self.imgArray.shape[1]
+        nrRandomSamples = 100
+        randomPatchesArrayList = list()
+        randomPatchesCenterList = extractRandomPatchCenterFromListWithoutMask(nrRandomSamples, imgHeight, imgWidth)
+        for randomPatchCenter in randomPatchesCenterList:
+            centerX = randomPatchCenter[0]
+            centerY = randomPatchCenter[1]
+
+            tl_x = int(centerX - Parameters.samplePatchSize / 2)
+            tl_y = int(centerY - Parameters.samplePatchSize / 2)
+
+            br_x = tl_x + Parameters.samplePatchSize
+            br_y = tl_y + Parameters.samplePatchSize
+
+            # Replace with boundary when beyond
+            tl_x = max(tl_x, 0)
+            tl_y = max(tl_y, 0)
+            br_x = min(br_x, self.imgArray.shape[1] - 1)
+            br_y = min(br_y, self.imgArray.shape[0] - 1)
+
+            randomPatchesArrayList.append(self.imgArray[tl_y: br_y + 1, tl_x: br_x + 1,:])
+
+        print "Number of Pachtes extracted is {0}".format(len(randomPatchesArrayList))
+        self.codebook = extract_code_for_Images_List(randomPatchesArrayList)
+        print "Codebook finished:"
+        print len(self.codebook)
+        self.extractProposalFeaturesForPrediction()
+
+    def extractProposalFeaturesForPrediction(self):
+        start_time = time.time()
+    # Generate sliding windows
+        pixel_size_x = self.layer.rasterUnitsPerPixelX()
+        pixel_size_y = self.layer.rasterUnitsPerPixelY()
+        top_left_x = self.layer.extent().xMinimum()
+        top_left_y = self.layer.extent().yMaximum()
+        bottom_right_x = self.layer.extent().xMaximum()
+        bottom_right_y = self.layer.extent().yMinimum()
+        dim_x = int((bottom_right_x - top_left_x) / pixel_size_x)
+        dim_y = int((top_left_y - bottom_right_y) / pixel_size_y)
+
+        print dim_x, dim_y
+        counter = 0
+        window_top_left_y = 0
+        window_bottom_right_y = 90
+        while window_bottom_right_y < dim_y - Parameters.samplePatchSize:
+            window_bottom_right_x = 90
+            window_top_left_x = 0
+            while (window_bottom_right_x < dim_x  - Parameters.samplePatchSize):
+                windowArray = self.imgArray[window_top_left_y : window_bottom_right_y,
+                              window_top_left_x : window_bottom_right_x, :]
+                self.windowArrayList.append(windowArray)
+                print "The {0}th window!".format(counter)
+                counter += 1
+                window_top_left_x += Parameters.strideSize
+                window_bottom_right_x += Parameters.strideSize
+            window_top_left_y  += Parameters.strideSize
+            window_bottom_right_y += Parameters.strideSize
+        print "The stride size is {0}".format(Parameters.strideSize)
+        print "Number of windows generated is {0}".format(len(self.windowArrayList))
+
+        self.bovwTestFeatures = extract_bovw_features(self.windowArrayList, self.codebook)[0]
+        print "Test features are created! {0}".format(len(self.bovwTestFeatures))
+
+        end_time = time.time()
+        print "{0} minutes are used!".format((end_time - start_time) / 60)
 
     def classify(self):
         """Do the classification job here"""
         self.canvasClicked.adding = False
         self.canvasClicked.deleting = False
-        patchArrayList = self.canvasClicked.patchList
-        pass
+
+        # Do the classification
+        bovwTrainingCocoFeatures = extract_bovw_features(self.canvasClicked.patchArrayList, self.codebook)[0]
+        labelTrainingCocoArray = np.ones(bovwTrainingCocoFeatures.shape[0], dtype = np.int)
+        # bovwTrainingNoncocoFeatures = extract_bovw_features(self.canvasClicked.patchArrayList, self.codebook)[0]
+        # labelTrainingNoncocoArray = np.zeros(bovwTrainingNoncocoFeatures.shape[0], dtype = np.int)
+        # bovwTrainingFeatures = np.concatenate((bovwTrainingCocoFeatures, bovwTrainingNoncocoFeatures))
+        # labelTrainingList = np.concatenate((labelTrainingCocoArray, labelTrainingNoncocoArray))
+
+        linear_svm_classifier = svm.OneClassSVM(kernel = 'linear')
+        linear_svm_classifier.fit(bovwTrainingCocoFeatures, labelTrainingCocoArray)
+        pred_test_labels = linear_svm_classifier.predict(self.bovwTestFeatures)
+        print "Prediction labels created! {0}".format(len(pred_test_labels))
+        np.save("/Users/ping/thesis/data/result/test_labels.npy", pred_test_labels)
+
     def autosavePickleFile(self):
         while True:
             if len(self.canvasClicked.annotationList) != 0:
