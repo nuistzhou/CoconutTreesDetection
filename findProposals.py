@@ -45,7 +45,7 @@ def cropImage(filename, chopsize):
                 chopArray = image_raw[i * chopsize: (i + 1) * chopsize,
                             j * chopsize: (j * chopsize + pixelAddY), :]
                 tempArray[:, :pixelAddY, :] = chopArray
-            # normal chop does not need adding pixels
+            # normal chop does not need addingCoco pixels
             else:
                 tempArray[:, :, :] = image_raw[i * chopsize: (i + 1) * chopsize,
                                      j * chopsize: (j + 1) * chopsize, :

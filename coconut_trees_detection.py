@@ -216,10 +216,12 @@ class CoconutTreesDetection:
 
         self.uiDockWidgetAnnotation.btnLoadAnnotationFile.clicked.connect(self.loadAnnotationsAndDisplay)
         self.uiDockWidgetAnnotation.btnSaveAnnotationFile.clicked.connect(self.saveAnnotationFile)
-        self.uiDockWidgetAnnotation.btnAddAnnotation.clicked.connect(self.addAnnotations)
+        self.uiDockWidgetAnnotation.btnAddAnnotationCoco.clicked.connect(self.addAnnotationsCoco)
         self.uiDockWidgetAnnotation.btnDeleteAnnotation.clicked.connect(self.deleteAnnotation)
         self.uiDockWidgetAnnotation.btnClassify.clicked.connect(self.classify)
         self.uiDockWidgetAnnotation.btnPreprocess.clicked.connect(self.preprocess)
+        self.uiDockWidgetAnnotation.btnAddAnnotationNoncoco.clicked.connect(self.addAnnotationsNoncoco)
+        self.uiDockWidgetAnnotation.btnDeleteAllAnnotation.clicked.connect(self.deleteAllAnnnotaions)
 
 
 
@@ -242,52 +244,91 @@ class CoconutTreesDetection:
 
     def loadAnnotationsAndDisplay(self):
 
-        self.canvasClicked.adding = False
+        self.canvasClicked.addingCoco = False
+        self.canvasClicked.addingNoncoco = False
         self.canvasClicked.deleting = False
 
-        if not os.path.exists(Parameters.annotationFile):
-            with open(Parameters.annotationFile, 'w') as filePickle_read:
+        if not os.path.exists(Parameters.annotationCocoFile):
+            with open(Parameters.annotationCocoFile, 'w') as filePickle_read:
                 pass
-            QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "New annotation file created!")
+            QMessageBox.information(self.iface.mainWindow(), "Load Coconut Annotations", "Coconut annotation file created!")
+
         else:
             try:
-                with open(Parameters.annotationFile, "r") as filePickle_read:
-                    self.canvasClicked.annotationList = pickle.load(filePickle_read)
+                with open(Parameters.annotationCocoFile, "r") as filePickle_read:
+                    self.canvasClicked.annotationCocoList = pickle.load(filePickle_read)
 
-                    QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Loaded!")
+                    # QMessageBox.information(self.iface.mainWindow(), "loadCocoAnnotations", "Coco annotations Loaded!")
             except EOFError:
-                    QMessageBox.information(self.iface.mainWindow(), "loadAnnotations", "Empty annotation file!")
+                QMessageBox.information(self.iface.mainWindow(), "Load Coconut Annotations", "Empty coconut annotation file!")
+
+        if not os.path.exists(Parameters.annotationNoncocoFile):
+            with open(Parameters.annotationNoncocoFile, 'w') as filePickle_read:
+                pass
+            QMessageBox.information(self.iface.mainWindow(), "Load Non-coconut Annotations", "Non-coconut annotation file created!")
+
+        else:
+            try:
+                with open(Parameters.annotationNoncocoFile, "r") as filePickle_read:
+                    self.canvasClicked.annotationNoncocoList = pickle.load(filePickle_read)
+
+
+                    QMessageBox.information(self.iface.mainWindow(), "LoadAnnotations", "Annotations Loaded!")
+            except EOFError:
+                    QMessageBox.information(self.iface.mainWindow(), "LoadAnnotations", "Empty non-coconut annotation file!")
+
         # Display loaded annotations on canvas
         self.canvasClicked.displayAnnotations()
 
 
     def saveAnnotationFile(self):
-        with open(Parameters.annotationFile, "w") as filePickle_save:
-            pickle.dump(self.canvasClicked.annotationList, filePickle_save)
-            self.canvasClicked.deleting = False
-            self.canvasClicked.adding = False
-        QMessageBox.information(self.iface.mainWindow(), "Save Annotations", "Saved!")
+        with open(Parameters.annotationCocoFile, "w") as filePickle_save:
+            pickle.dump(self.canvasClicked.annotationCocoList, filePickle_save)
+        with open(Parameters.annotationNoncocoFile, "w") as filePickle_save:
+            pickle.dump(self.canvasClicked.annotationNoncocoList, filePickle_save)
 
-    def addAnnotations(self):
+        self.canvasClicked.deleting = False
+        self.canvasClicked.addingCoco = False
+        self.canvasClicked.addingNoncoco = False
+        QMessageBox.information(self.iface.mainWindow(), "Save Annotations", "All annotations saved!")
+
+    def addAnnotationsCoco(self):
         """Call this function to get clicked point coordinates after pressed the 'Add' button"""
-        self.canvasClicked.adding = True
+        self.canvasClicked.addingCoco = True
+        self.canvasClicked.addingNoncoco = False
+        self.canvasClicked.deleting = False
+        self.canvas.setMapTool(self.canvasClicked)
+
+    def addAnnotationsNoncoco(self):
+        """Call this function to get clicked point coordinates after pressed the 'Add' button"""
+        self.canvasClicked.addingNoncoco = True
+        self.canvasClicked.addingCoco = False
         self.canvasClicked.deleting = False
         self.canvas.setMapTool(self.canvasClicked)
 
 
     def deleteAnnotation(self):
         """Delete clicked annotations on the canvas"""
-        self.canvasClicked.adding = False # Deactivate the adding activity
+        self.canvasClicked.addingCoco = False # Deactivate the addingCoco activity
+        self.canvasClicked.addingNoncoco = False
         self.canvasClicked.deleting = True
         self.canvas.setMapTool(self.canvasClicked)
 
+    def deleteAllAnnnotaions(self):
+        """Delete all annotations on the canvas"""
+        self.canvasClicked.addingNoncoco = False
+        self.canvasClicked.addingCoco = False
+        self.canvasClicked.deleteAllAnnnotaions()
+
+
     def preprocess(self):
         """Build the Bag of Visual Words codebook and create sliding windows for grid search"""
-        self.canvasClicked.adding = False
+        self.canvasClicked.addingCoco = False
+        self.canvasClicked.addingNoncoco = False
         self.canvasClicked.deleting = False
         imgHeight = self.imgArray.shape[0]
         imgWidth = self.imgArray.shape[1]
-        nrRandomSamples = 100
+        nrRandomSamples = Parameters.bovwCodebookNrRandomSamples
         randomPatchesArrayList = list()
         randomPatchesCenterList = extractRandomPatchCenterFromListWithoutMask(nrRandomSamples, imgHeight, imgWidth)
         for randomPatchCenter in randomPatchesCenterList:
@@ -326,7 +367,6 @@ class CoconutTreesDetection:
         dim_x = int((bottom_right_x - top_left_x) / pixel_size_x)
         dim_y = int((top_left_y - bottom_right_y) / pixel_size_y)
 
-        print dim_x, dim_y
         counter = 0
         window_top_left_y = 0
         window_bottom_right_y = 90
@@ -337,43 +377,44 @@ class CoconutTreesDetection:
                 windowArray = self.imgArray[window_top_left_y : window_bottom_right_y,
                               window_top_left_x : window_bottom_right_x, :]
                 self.windowArrayList.append(windowArray)
-                print "The {0}th window!".format(counter)
+                # print "The {0}th window!".format(counter)
                 counter += 1
                 window_top_left_x += Parameters.strideSize
                 window_bottom_right_x += Parameters.strideSize
             window_top_left_y  += Parameters.strideSize
             window_bottom_right_y += Parameters.strideSize
-        print "The stride size is {0}".format(Parameters.strideSize)
-        print "Number of windows generated is {0}".format(len(self.windowArrayList))
 
+        print "Number of windows generated is {0}".format(len(self.windowArrayList))
         self.bovwTestFeatures = extract_bovw_features(self.windowArrayList, self.codebook)[0]
-        print "Test features are created! {0}".format(len(self.bovwTestFeatures))
+        print "The number of {0} test features are created!".format(len(self.bovwTestFeatures))
 
         end_time = time.time()
         print "{0} minutes are used!".format((end_time - start_time) / 60)
 
     def classify(self):
         """Do the classification job here"""
-        self.canvasClicked.adding = False
+        self.canvasClicked.addingCoco = False
         self.canvasClicked.deleting = False
 
         # Do the classification
-        bovwTrainingCocoFeatures = extract_bovw_features(self.canvasClicked.patchArrayList, self.codebook)[0]
-        labelTrainingCocoArray = np.ones(bovwTrainingCocoFeatures.shape[0], dtype = np.int)
-        # bovwTrainingNoncocoFeatures = extract_bovw_features(self.canvasClicked.patchArrayList, self.codebook)[0]
-        # labelTrainingNoncocoArray = np.zeros(bovwTrainingNoncocoFeatures.shape[0], dtype = np.int)
-        # bovwTrainingFeatures = np.concatenate((bovwTrainingCocoFeatures, bovwTrainingNoncocoFeatures))
-        # labelTrainingList = np.concatenate((labelTrainingCocoArray, labelTrainingNoncocoArray))
+        bovwTrainingCocoFeatures = extract_bovw_features(self.canvasClicked.patchArrayCocoList, self.codebook)[0]
+        labelTrainingCocoArray = np.ones(bovwTrainingCocoFeatures.shape[0], dtype = np.int) # One
+        bovwTrainingNoncocoFeatures = extract_bovw_features(self.canvasClicked.patchArrayCocoList, self.codebook)[0]
+        labelTrainingNoncocoArray = np.zeros(bovwTrainingNoncocoFeatures.shape[0], dtype = np.int) # Zero
+        bovwTrainingFeatures = np.concatenate((bovwTrainingCocoFeatures, bovwTrainingNoncocoFeatures))
+        labelTrainingArray = np.concatenate((labelTrainingCocoArray, labelTrainingNoncocoArray))
 
-        linear_svm_classifier = svm.OneClassSVM(kernel = 'linear')
-        linear_svm_classifier.fit(bovwTrainingCocoFeatures, labelTrainingCocoArray)
+        print "Number of training samples are {0}, with {1} Coco and {2} Non_coco!"\
+            .format(len(bovwTrainingFeatures), len(bovwTrainingCocoFeatures), len(bovwTrainingNoncocoFeatures))
+        linear_svm_classifier = svm.LinearSVC(C = 0.1)
+        linear_svm_classifier.fit(bovwTrainingFeatures, labelTrainingArray)
         pred_test_labels = linear_svm_classifier.predict(self.bovwTestFeatures)
-        print "Prediction labels created! {0}".format(len(pred_test_labels))
-        np.save("/Users/ping/thesis/data/result/test_labels.npy", pred_test_labels)
+        print "Number of {0} Prediction Labels created! ".format(len(pred_test_labels))
+        np.save("/Users/ping/Documents/thesis/data/result/test_labels.npy", pred_test_labels)
 
     def autosavePickleFile(self):
         while True:
-            if len(self.canvasClicked.annotationList) != 0:
+            if len(self.canvasClicked.annotationCocoList) != 0:
                 self.saveAnnotationFile()
             time.sleep(5)
 

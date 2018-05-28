@@ -19,11 +19,15 @@ class ClickTool(QgsMapTool):
         self.imgArray = imgArray
         self.pointArray = list()
         self.point = None
-        self.adding = False # Switch for adding annotations
+        self.addingCoco = False
+        self.addingNoncoco = False
         self.deleting = False # Switch for deleting annotations
-        self.rubberbandsList = list()
-        self.annotationList = list()
-        self.patchArrayList = list()
+        self.rubberbandsCocoList = list()
+        self.rubberbandsNoncocoList = list()
+        self.annotationCocoList = list()
+        self.annotationNoncocoList = list()
+        self.patchArrayCocoList = list()
+        self.patchArrayNoncocoList = list()
 
         QgsMapTool.__init__(self, self.canvas)
 
@@ -59,23 +63,36 @@ class ClickTool(QgsMapTool):
         self.point = self.canvas.getCoordinateTransform()
         self.point = self.point.toMapCoordinates(event.pos().x(), event.pos().y())
 
-        if self.adding == True:
+        if self.addingCoco == True or self.addingNoncoco == True:
             # self.pointArray.append((self.point.x(), self.point.y()))
             self.boundingBoxPointsCoords = self.generateBoundingPointsCoordinates()
-
-            self.rubberband = self.createRubberbands(self.boundingBoxPointsCoords)
-            self.rubberband.show()
-
-            # Add this annotation to self.annotationList
-            self.annotationList.append(self.boundingBoxPointsCoords)
-
-            # Add rubberband to the self.rubberbandsList
-            self.rubberbandsList.append(self.rubberband)
-
-            # Return bounding box top-left and bottom-right point pixel coordinates
-
             pointsArrayList = self.mapCoords2PixelCoords(self.boundingBoxPointsCoords)
-            self.patchArrayList.append(self.extractPatchAsArray(pointsArrayList))
+
+            # Add this annotation to self.annotationCocoList
+            if self.addingCoco == True:
+                self.rubberband = self.createRubberbands(self.boundingBoxPointsCoords, 'red')
+                self.rubberband.show()
+                self.annotationCocoList.append(self.boundingBoxPointsCoords)
+
+                # Add rubberband to the self.rubberbandsCocoList
+                self.rubberbandsCocoList.append(self.rubberband)
+
+                # Return bounding box top-left and bottom-right point pixel coordinates
+
+                self.patchArrayCocoList.append(self.extractPatchAsArray(pointsArrayList))
+            else:
+
+                self.rubberband = self.createRubberbands(self.boundingBoxPointsCoords, 'blue')
+                self.rubberband.show()
+
+                self.annotationNoncocoList.append(self.boundingBoxPointsCoords)
+
+                # Add rubberband to the self.rubberbandsCocoList
+                self.rubberbandsNoncocoList.append(self.rubberband)
+
+                # Return bounding box top-left and bottom-right point pixel coordinates
+
+                self.patchArrayNoncocoList.append(self.extractPatchAsArray(pointsArrayList))
 
 
         elif self.deleting == True:
@@ -86,28 +103,66 @@ class ClickTool(QgsMapTool):
 
         """Try to deactivate the tool after doble clicking on the canvas
         Not finished yet..."""
-        # self.adding = False
+        # self.addingCoco = False
         # self.deactivate()
 
     def removeRubberband(self):
         """Remove certain rubberband when clicking on in the boundingbox
         @type rubberband: QgsRubberBand"""
         # rubberbands = [i for i in self.canvas.scene().items() if isinstance(i, QgsRubberBand)]
-        for i, annotation in enumerate(self.annotationList):
+        for i, annotation in enumerate(self.annotationCocoList):
             pt1_x, pt1_y = annotation[0]
             pt3_x, pt3_y = annotation[2]
 
             if ((self.point.x() <= pt3_x) and (self.point.x() >= pt1_x) and
                 (self.point.y() <= pt1_y) and (self.point.y() >= pt3_y)):
 
-                self.annotationList.pop(i)
-                self.canvas.scene().removeItem(self.rubberbandsList[i])
-                self.rubberbandsList.pop(i)
-                self.patchArrayList.pop(i)
-                break
+                #
+                # print "Number of coco_annot {0}".format(len(self.annotationCocoList))
+                # print "Number of coco_rubberbands {0}".format(len(self.rubberbandsCocoList))
 
-        with open(Parameters.annotationFile, 'w') as f:
-             pickle.dump(self.annotationList, f)
+                self.annotationCocoList.pop(i)
+                self.canvas.scene().removeItem(self.rubberbandsCocoList[i])
+                self.rubberbandsCocoList.pop(i)
+                #
+                # print "After removal:"
+                # print "Number of coco_annot {0}".format(len(self.annotationCocoList))
+                # print "Number of coco_rubberbands {0}".format(len(self.rubberbandsCocoList))
+
+                self.patchArrayCocoList.pop(i)
+
+                # Write change to the pickle file
+                with open(Parameters.annotationCocoFile, 'w') as f:
+                    pickle.dump(self.annotationCocoList, f)
+                return
+
+        for i, annotation in enumerate(self.annotationNoncocoList):
+            pt1_x, pt1_y = annotation[0]
+            pt3_x, pt3_y = annotation[2]
+
+            if ((self.point.x() <= pt3_x) and (self.point.x() >= pt1_x) and
+                (self.point.y() <= pt1_y) and (self.point.y() >= pt3_y)):
+
+                self.annotationNoncocoList.pop(i)
+                self.canvas.scene().removeItem(self.rubberbandsNoncocoList[i])
+                self.rubberbandsNoncocoList.pop(i)
+                self.patchArrayNoncocoList.pop(i)
+                # Write change to the pickle file
+                with open(Parameters.annotationNoncocoFile, 'w') as f:
+                    pickle.dump(self.annotationNoncocoList, f)
+                return
+    def deleteAllAnnnotaions(self):
+        """Delete all annotations!"""
+        rubberbands = [i for i in self.canvas.scene().items() if isinstance(i, QgsRubberBand)]
+        for rubberband in rubberbands:
+            self.canvas.scene().removeItem(rubberband)
+        self.annotationNoncocoList = list()
+        self.annotationCocoList = list()
+        self.rubberbandsCocoList = list()
+        self.rubberbandsNoncocoList = list()
+        self.patchArrayCocoList = list()
+        self.patchArrayNoncocoList = list()
+
 
     def generateBoundingPointsCoordinates(self):
         """Generate the 4 bounding points around the clicked point
@@ -132,11 +187,14 @@ class ClickTool(QgsMapTool):
 
         return list_bounding_points_coords
 
-    def createRubberbands(self, boundingPoints):
+    def createRubberbands(self, boundingPoints, color):
         """Create and return the rubberband object"""
         boundingQgsPtsList = list()
         self.polygon = QgsRubberBand(self.canvas, True)  # True means a polygon
-        self.polygon.setBorderColor(QColor(255, 0, 0))
+        if color == 'red':
+            self.polygon.setBorderColor(QColor(255, 0, 0))
+        elif color == 'blue':
+            self.polygon.setBorderColor(QColor(0, 0, 255))
         self.polygon.setFillColor(QColor(0, 0, 0, 0))
         self.polygon.setLineStyle(Qt.DotLine)
         self.polygon.setWidth(3)
@@ -151,11 +209,23 @@ class ClickTool(QgsMapTool):
         for rubberband in rubberbands:
             self.canvas.scene().removeItem(rubberband)
 
-        self.rubberbandsList = list()
-        for annotation in self.annotationList:
-            rubberband = self.createRubberbands(annotation)
-            self.rubberbandsList.append(rubberband)
+        self.rubberbandsCocoList = list()
+        self.rubberbandsNoncocoList = list()
+
+        for annotation in self.annotationCocoList:
+            rubberband = self.createRubberbands(annotation, 'red')
+            self.rubberbandsCocoList.append(rubberband)
             rubberband.show()
+            pointsArrayList = self.mapCoords2PixelCoords(annotation)
+            self.patchArrayCocoList.append(self.extractPatchAsArray(pointsArrayList))
+
+
+        for annotation in self.annotationNoncocoList:
+            rubberband = self.createRubberbands(annotation, 'blue')
+            self.rubberbandsNoncocoList.append(rubberband)
+            rubberband.show()
+            pointsArrayList = self.mapCoords2PixelCoords(annotation)
+            self.patchArrayNoncocoList.append(self.extractPatchAsArray(pointsArrayList))
 
 
 

@@ -6,6 +6,7 @@ class Parameters:
     samplePatchSize = 90
     maskPatchSize = 90*2
     strideSize = 25
+    bovwCodebookNrRandomSamples = 1000
     cocoVecLayer = "coconutTrees"
     rgbImage = os.path.join(dataPath, "rgb_image.tif")
     patchesNumpyArray = os.path.join(dataPath, "patchesNumpyArrays")
@@ -14,7 +15,9 @@ class Parameters:
     mergedFeatureDescriptorPath = os.path.join(dataPath, "featureDescriptors/merged_features")
     bowFeatureDescriptorPath = os.path.join(dataPath, "featureDescriptors/bow_features")
     performanceTestDir = os.path.join(dataPath, "performance_test")
-    annotationFile = os.path.join(dataPath, "annotation.pkl")
+    annotationCocoFile = os.path.join(dataPath, "annotationCoco.pkl")
+    annotationNoncocoFile = os.path.join(dataPath, "annotationNoncoco.pkl")
+
     maskRgbImage = os.path.join(dataPath, "maskRgbImage")
     avgCocoImg = os.path.join(dataPath, "result/avgCoco.png")
     avgCocoImgEnlarged = os.path.join(dataPath, "result/avgCocoEnlarged.png")
