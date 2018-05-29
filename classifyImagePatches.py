@@ -33,7 +33,7 @@ def svmRBF_grid_search(dataset, labels):
 def linearSVM_grid_search(dataset, labels):
     C_s = 10.0 ** np.arange(-1, 3)
     tuned_parameters = [{'C': C_s}]
-    clf = GridSearchCV(svm.LinearSVC(C=1), tuned_parameters, cv=5)
+    clf = GridSearchCV(svm.LinearSVC(C=1), tuned_parameters, cv=3)
     clf.fit(dataset, labels)
     return clf.best_params_['C']
 

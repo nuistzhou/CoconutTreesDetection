@@ -1,6 +1,10 @@
 from qgis.core import *
 from qgis.gui import *
 from PyQt4.QtCore import *
+import numpy as np
+from sklearn import svm
+from sklearn.model_selection import GridSearchCV
+from sklearn.manifold import TSNE
 import processing
 from processing.core.Processing import Processing
 Processing.initialize()
@@ -133,3 +137,37 @@ def calCoverage():
     QgsMapLayerRegistry.instance().removeMapLayers(["temporary_points", "nearestPoints_distance"])
     return coverage_percentage
 
+def linearSVM_grid_search(dataset, labels):
+    C_s = 10.0 ** np.arange(-1, 3)
+    tuned_parameters = [{'C': C_s}]
+    clf = GridSearchCV(svm.LinearSVC(C=1), tuned_parameters, cv=3)
+    clf.fit(dataset, labels)
+    return clf.best_params_['C']
+
+
+def getTSNEFeatures(features):
+    projection_area_height = 800
+    projection_area_width = 420
+    # get TSNE projection
+    converter = TSNE(n_components=2, random_state=0)
+    features2D = converter.fit_transform(features)
+    # features2D = features2D * 6# scaling values
+    print "TSNE ok"
+
+    # compute scale factor
+    print "orig x min {} max {}".format(np.min(features2D[:, 0]), np.max(features2D[:, 0]))
+    print "orig y min {} max {}".format(np.min(features2D[:, 1]), np.max(features2D[:, 1]))
+    x_min = np.min(features2D[:, 0])
+    y_min = np.min(features2D[:, 1])
+    x_max = np.max(features2D[:, 0])
+    y_max = np.max(features2D[:, 1])
+    scale_factor = projection_area_width / float(x_max - x_min)
+    features2D = features2D * scale_factor
+    print "scale factor {}".format(scale_factor)
+
+    features2D[:, 0] = features2D[:, 0] - x_min
+    features2D[:, 1] = features2D[:, 1] - y_min
+    print "x min {} max {}".format(np.min(features2D[:, 0]), np.max(features2D[:, 0]))
+    print "y min {} max {}".format(np.min(features2D[:, 1]), np.max(features2D[:, 1]))
+
+    return features2D

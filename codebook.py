@@ -21,12 +21,7 @@ def extract_code_for_Images_List(imgArrayList):
 	max_nimages_per_class = 50
 	# read images and extract descriptors
 	decriptorsList, labelsList = bovw_utils.extract_local_descriptor_ImageArrayList(imgArrayList)
-
-	print "descriptors extracted!"
-
 	codebook = fast_stratified_kmeans_codebook(decriptorsList, labelsList, codebook_size, max_nimages_per_class)
-
-	print "Codebook created!"
 	return codebook
 
 def merge_datasets(list_datasets):
@@ -77,8 +72,8 @@ def kmeans_codebook_from_every_class(list_datasets, labels, codebook_size, indic
 	list_partial_codebooks = []
 	for i in range(num_labels):
 		merged_dataset = merge_datasets_from_indices_list(list_datasets, indices_per_class[i])
-		print merged_dataset.shape
-		print "nindices per class {} : {}".format(i+1, len(indices_per_class[i]))
+		# print merged_dataset.shape
+		# print "nindices per class {} : {}".format(i+1, len(indices_per_class[i]))
 		if i == (num_labels - 1):
 			nsamples_per_label = codebook_size - (num_labels-1)*nsamples_per_label
 		list_partial_codebooks.append(kmeans_codebook(merged_dataset, nsamples_per_label))

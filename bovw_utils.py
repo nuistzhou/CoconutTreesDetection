@@ -50,7 +50,6 @@ def extract_local_descriptor_ImageArrayList(imgArrayList):
     labels = list()
     descriptorList = list()
     desc_method = cv2.xfeatures2d.SIFT_create()
-    print "Generating feature descriptors..."
     for imgArray in imgArrayList:
         kps = [cv2.KeyPoint(x, y, step_size) for y in range(0, imgArray.shape[0], step_size)
                for x in range(0, imgArray.shape[1], step_size)]

@@ -41,7 +41,7 @@ from config import Parameters
 from codebook import extract_code_for_Images_List
 from bovw import extract_bovw_features
 from createRandomSamplePatches import extractRandomPatchCenterFromListWithoutMask
-
+from visualization import Visualization
 
 # Initialize Qt resources from filePickle resources.py
 import resources
@@ -207,6 +207,8 @@ class CoconutTreesDetection:
         self.layer = self.getLayerByName('rgb_image_clipped')
         self.windowArrayList = list()
         self.imgArray = cv2.imread(self.imgFilename)
+        self.bovwTrainingFeatures = None
+        self.labelTrainingArray = None
 
 
         self.config = Parameters(self.layer)
@@ -222,6 +224,7 @@ class CoconutTreesDetection:
         self.uiDockWidgetAnnotation.btnPreprocess.clicked.connect(self.preprocess)
         self.uiDockWidgetAnnotation.btnAddAnnotationNoncoco.clicked.connect(self.addAnnotationsNoncoco)
         self.uiDockWidgetAnnotation.btnDeleteAllAnnotation.clicked.connect(self.deleteAllAnnnotaions)
+        self.uiDockWidgetAnnotation.btnVisualize.clicked.connect(self.tsneVisualization)
 
 
 
@@ -248,7 +251,7 @@ class CoconutTreesDetection:
         self.canvasClicked.addingNoncoco = False
         self.canvasClicked.deleting = False
 
-        if not os.path.exists(Parameters.annotationCocoFile):
+        if not os.path.isfile(Parameters.annotationCocoFile):
             with open(Parameters.annotationCocoFile, 'w') as filePickle_read:
                 pass
             QMessageBox.information(self.iface.mainWindow(), "Load Coconut Annotations", "Coconut annotation file created!")
@@ -262,7 +265,7 @@ class CoconutTreesDetection:
             except EOFError:
                 QMessageBox.information(self.iface.mainWindow(), "Load Coconut Annotations", "Empty coconut annotation file!")
 
-        if not os.path.exists(Parameters.annotationNoncocoFile):
+        if not os.path.isfile(Parameters.annotationNoncocoFile):
             with open(Parameters.annotationNoncocoFile, 'w') as filePickle_read:
                 pass
             QMessageBox.information(self.iface.mainWindow(), "Load Non-coconut Annotations", "Non-coconut annotation file created!")
@@ -322,42 +325,63 @@ class CoconutTreesDetection:
 
 
     def preprocess(self):
-        """Build the Bag of Visual Words codebook and create sliding windows for grid search"""
+        """Build the Bag of Visual Words codebook and create sliding windows for grid search
+        Check if codebook.npy and testFeatures.npy exist, if not, create, otherwise load from disk."""
+        timeStart = time.time()
         self.canvasClicked.addingCoco = False
         self.canvasClicked.addingNoncoco = False
         self.canvasClicked.deleting = False
-        imgHeight = self.imgArray.shape[0]
-        imgWidth = self.imgArray.shape[1]
-        nrRandomSamples = Parameters.bovwCodebookNrRandomSamples
-        randomPatchesArrayList = list()
-        randomPatchesCenterList = extractRandomPatchCenterFromListWithoutMask(nrRandomSamples, imgHeight, imgWidth)
-        for randomPatchCenter in randomPatchesCenterList:
-            centerX = randomPatchCenter[0]
-            centerY = randomPatchCenter[1]
+        if not os.path.isfile(Parameters.codebookFileName):
+            imgHeight = self.imgArray.shape[0]
+            imgWidth = self.imgArray.shape[1]
+            nrRandomSamples = Parameters.bovwCodebookNrRandomSamples
+            randomPatchesArrayList = list()
+            print "Creating random samples for building the codebook ..."
+            randomPatchesCenterList = extractRandomPatchCenterFromListWithoutMask(nrRandomSamples, imgHeight, imgWidth)
 
-            tl_x = int(centerX - Parameters.samplePatchSize / 2)
-            tl_y = int(centerY - Parameters.samplePatchSize / 2)
+            for randomPatchCenter in randomPatchesCenterList:
+                centerX = randomPatchCenter[0]
+                centerY = randomPatchCenter[1]
 
-            br_x = tl_x + Parameters.samplePatchSize
-            br_y = tl_y + Parameters.samplePatchSize
+                tl_x = int(centerX - Parameters.samplePatchSize / 2)
+                tl_y = int(centerY - Parameters.samplePatchSize / 2)
 
-            # Replace with boundary when beyond
-            tl_x = max(tl_x, 0)
-            tl_y = max(tl_y, 0)
-            br_x = min(br_x, self.imgArray.shape[1] - 1)
-            br_y = min(br_y, self.imgArray.shape[0] - 1)
+                br_x = tl_x + Parameters.samplePatchSize
+                br_y = tl_y + Parameters.samplePatchSize
 
-            randomPatchesArrayList.append(self.imgArray[tl_y: br_y + 1, tl_x: br_x + 1,:])
+                # Replace with boundary when beyond
+                tl_x = max(tl_x, 0)
+                tl_y = max(tl_y, 0)
+                br_x = min(br_x, self.imgArray.shape[1] - 1)
+                br_y = min(br_y, self.imgArray.shape[0] - 1)
 
-        print "Number of Pachtes extracted is {0}".format(len(randomPatchesArrayList))
-        self.codebook = extract_code_for_Images_List(randomPatchesArrayList)
-        print "Codebook finished:"
-        print len(self.codebook)
-        self.extractProposalFeaturesForPrediction()
+                randomPatchesArrayList.append(self.imgArray[tl_y: br_y + 1, tl_x: br_x + 1,:])
+
+            timeRandomPatchForCodebook = time.time()
+            print "Random samples generated!"
+            print "Generating codebook with {0} random samples, takes {1: .2f} seconds".format(nrRandomSamples, timeRandomPatchForCodebook - timeStart)
+
+            print "Building the codebook ..."
+            self.codebook = extract_code_for_Images_List(randomPatchesArrayList)
+            np.save(Parameters.codebookFileName, self.codebook)
+            print "Codebook built!"
+        else:
+            self.codebook = np.load(Parameters.codebookFileName)
+            print "Codebook loaded!"
+
+        if not os.path.exists(Parameters.testFeatures):
+            self.extractProposalFeaturesForPrediction()
+            np.save(Parameters.testFeatures, self.bovwTestFeatures)
+            timeEndPreprocessing = time.time()
+            print "The whole preprocessing takes {0: .2f} seconds!".format(timeEndPreprocessing - timeStart)
+        else:
+            self.bovwTestFeatures = np.load(Parameters.testFeatures)
+            print "Test features loaded!"
 
     def extractProposalFeaturesForPrediction(self):
         start_time = time.time()
-    # Generate sliding windows
+        # Generate sliding windows
+        print "Start generating sliding windows..."
         pixel_size_x = self.layer.rasterUnitsPerPixelX()
         pixel_size_y = self.layer.rasterUnitsPerPixelY()
         top_left_x = self.layer.extent().xMinimum()
@@ -367,7 +391,6 @@ class CoconutTreesDetection:
         dim_x = int((bottom_right_x - top_left_x) / pixel_size_x)
         dim_y = int((top_left_y - bottom_right_y) / pixel_size_y)
 
-        counter = 0
         window_top_left_y = 0
         window_bottom_right_y = 90
         while window_bottom_right_y < dim_y - Parameters.samplePatchSize:
@@ -377,39 +400,56 @@ class CoconutTreesDetection:
                 windowArray = self.imgArray[window_top_left_y : window_bottom_right_y,
                               window_top_left_x : window_bottom_right_x, :]
                 self.windowArrayList.append(windowArray)
-                # print "The {0}th window!".format(counter)
-                counter += 1
                 window_top_left_x += Parameters.strideSize
                 window_bottom_right_x += Parameters.strideSize
             window_top_left_y  += Parameters.strideSize
             window_bottom_right_y += Parameters.strideSize
 
-        print "Number of windows generated is {0}".format(len(self.windowArrayList))
-        self.bovwTestFeatures = extract_bovw_features(self.windowArrayList, self.codebook)[0]
-        print "The number of {0} test features are created!".format(len(self.bovwTestFeatures))
+        print "All sliding windows created!"
+        timeGeneratingSlindingwindows = time.time()
+        print "Generating {0} sliding windows with stride size of {1} takes {2:.2f} seconds".format(len(self.windowArrayList), Parameters.strideSize, timeGeneratingSlindingwindows - start_time)
 
-        end_time = time.time()
-        print "{0} minutes are used!".format((end_time - start_time) / 60)
+        print "Extracting sliding windows features..."
+        self.bovwTestFeatures = extract_bovw_features(self.windowArrayList, self.codebook)[0]
+        print "All sliding window features extracted! "
+        # print "The number of {0} test features are created!".format(len(self.bovwTestFeatures))
+        timeExtractWindowFeatures = time.time()
+        print "Extracting features from all sliding windows takes {0:.2f} seconds".format(timeExtractWindowFeatures - timeGeneratingSlindingwindows)
 
     def classify(self):
+        timeStart = time.time()
+
         """Do the classification job here"""
         self.canvasClicked.addingCoco = False
         self.canvasClicked.deleting = False
 
+
         # Do the classification
         bovwTrainingCocoFeatures = extract_bovw_features(self.canvasClicked.patchArrayCocoList, self.codebook)[0]
         labelTrainingCocoArray = np.ones(bovwTrainingCocoFeatures.shape[0], dtype = np.int) # One
-        bovwTrainingNoncocoFeatures = extract_bovw_features(self.canvasClicked.patchArrayCocoList, self.codebook)[0]
+        bovwTrainingNoncocoFeatures = extract_bovw_features(self.canvasClicked.patchArrayNoncocoList, self.codebook)[0]
         labelTrainingNoncocoArray = np.zeros(bovwTrainingNoncocoFeatures.shape[0], dtype = np.int) # Zero
-        bovwTrainingFeatures = np.concatenate((bovwTrainingCocoFeatures, bovwTrainingNoncocoFeatures))
-        labelTrainingArray = np.concatenate((labelTrainingCocoArray, labelTrainingNoncocoArray))
+        self.bovwTrainingFeatures = np.concatenate((bovwTrainingCocoFeatures, bovwTrainingNoncocoFeatures))
+        self.labelTrainingArray = np.concatenate((labelTrainingCocoArray, labelTrainingNoncocoArray))
+
+        timeExtractTrainingFeatures = time.time()
+        print "Extracting features from all sliding windows takes {0:.2f} seconds".format(timeExtractTrainingFeatures - timeStart)
 
         print "Number of training samples are {0}, with {1} Coco and {2} Non_coco!"\
-            .format(len(bovwTrainingFeatures), len(bovwTrainingCocoFeatures), len(bovwTrainingNoncocoFeatures))
-        linear_svm_classifier = svm.LinearSVC(C = 0.1)
-        linear_svm_classifier.fit(bovwTrainingFeatures, labelTrainingArray)
+            .format(len(self.bovwTrainingFeatures), len(bovwTrainingCocoFeatures), len(bovwTrainingNoncocoFeatures))
+        c_tuned = linearSVM_grid_search(self.bovwTrainingFeatures, self.labelTrainingArray)
+        timeTuningCparameter = time.time()
+        print "Tuned C parameter is {0}".format(c_tuned)
+        print "Tuning C parameter for the SVM takes {0:.2f} seconds".format(timeTuningCparameter - timeExtractTrainingFeatures)
+
+        linear_svm_classifier = svm.LinearSVC(C = c_tuned)
+        linear_svm_classifier.fit(self.bovwTrainingFeatures, self.labelTrainingArray)
         pred_test_labels = linear_svm_classifier.predict(self.bovwTestFeatures)
         print "Number of {0} Prediction Labels created! ".format(len(pred_test_labels))
+        timeTrainAndPredict = time.time()
+        print "Training and predicting takes {0:.2f} seconds".format(timeTrainAndPredict - timeTuningCparameter)
+        print "It takes {0} seconds to classify in total!".format(timeTrainAndPredict - timeStart)
+
         np.save("/Users/ping/Documents/thesis/data/result/test_labels.npy", pred_test_labels)
 
     def autosavePickleFile(self):
@@ -418,6 +458,16 @@ class CoconutTreesDetection:
                 self.saveAnnotationFile()
             time.sleep(5)
 
+    def tsneVisualization(self):
+        # Init the widget
+        self.visualization = Visualization(self.config)
+
+        # t-SNE features
+        tSNE_features = getTSNEFeatures(self.bovwTrainingFeatures)
+        self.visualization.show()
+        self.visualization.updateNodes(tSNE_features, labels = self.labelTrainingArray)
+        # self.visualization.graph_widget.fitInView()
+        self.visualization.exec_()
 
     #--------------------------------------------------------------------------
 
@@ -477,6 +527,3 @@ class CoconutTreesDetection:
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
 """
-
-
-

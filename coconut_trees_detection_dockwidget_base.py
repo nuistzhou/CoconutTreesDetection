@@ -62,6 +62,10 @@ class Ui_DockWidget(object):
         self.btnClassify.setGeometry(QtCore.QRect(180, 230, 110, 32))
         self.btnClassify.setObjectName(_fromUtf8("btnClassify"))
 
+        # Visualize
+        self.btnVisualize = QtGui.QPushButton(self.dockWidgetContents)
+        self.btnVisualize.setGeometry(QtCore.QRect(50, 290, 110, 32))
+        self.btnVisualize.setObjectName(_fromUtf8("btnVisualize"))
 
 
         # #-----------widget test for accessing mouse coordinates, remove later
@@ -83,6 +87,8 @@ class Ui_DockWidget(object):
         self.btnPreprocess.setText(_translate("DockWidget", "Preprocess", None))
         self.btnAddAnnotationNoncoco.setText(_translate("DockWidget", "Add Others", None))
         self.btnDeleteAllAnnotation.setText(_translate("DockWidget", "Delete All", None))
+        self.btnVisualize.setText(_translate("DockWidget", "Visualize", None))
+
 
 
 

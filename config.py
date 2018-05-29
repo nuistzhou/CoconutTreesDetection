@@ -5,9 +5,10 @@ class Parameters:
     dataPath = "/Users/ping/Documents/thesis/data"
     samplePatchSize = 90
     maskPatchSize = 90*2
-    strideSize = 25
-    bovwCodebookNrRandomSamples = 1000
+    strideSize = 55
+    bovwCodebookNrRandomSamples = 100
     cocoVecLayer = "coconutTrees"
+    tempDir = os.path.join(dataPath, "temp")
     rgbImage = os.path.join(dataPath, "rgb_image.tif")
     patchesNumpyArray = os.path.join(dataPath, "patchesNumpyArrays")
     rgbImageUpper = os.path.join(dataPath, 'rgb_image_upperLayer.tif')
@@ -17,6 +18,8 @@ class Parameters:
     performanceTestDir = os.path.join(dataPath, "performance_test")
     annotationCocoFile = os.path.join(dataPath, "annotationCoco.pkl")
     annotationNoncocoFile = os.path.join(dataPath, "annotationNoncoco.pkl")
+    codebookFileName = os.path.join(tempDir, "codebook.npy")
+    testFeatures = os.path.join(tempDir, "testFeatures.npy")
 
     maskRgbImage = os.path.join(dataPath, "maskRgbImage")
     avgCocoImg = os.path.join(dataPath, "result/avgCoco.png")

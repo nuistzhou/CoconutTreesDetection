@@ -29,7 +29,7 @@ while window_bottom_right_y < dim_y - Parameters.samplePatchSize:
     window_bottom_right_y += Parameters.strideSize
 
 print "Number of {0} coconut trees detected from {1} windows, with a percentage of " \
-      "{2}%!".format(counterCoco, counter, counterCoco/counter * 100)
+      "{2: .2f}%!".format(counterCoco, counter, float(counterCoco)/counter * 100)
 
 img = Image.fromarray(classification_image)
 img.save("/Users/ping/thesis/data/result/classification_map.png")
