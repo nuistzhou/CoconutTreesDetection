@@ -34,6 +34,7 @@ import pickle
 import numpy as np
 from PIL import Image
 from sklearn import svm
+from sklearn.calibration import CalibratedClassifierCV
 import cv2
 from clickTool import *
 from tools import *
@@ -209,6 +210,8 @@ class CoconutTreesDetection:
         self.imgArray = cv2.imread(self.imgFilename)
         self.bovwTrainingFeatures = None
         self.labelTrainingArray = None
+        self.predicted_probs = None
+
 
 
         self.config = Parameters(self.layer)
@@ -446,11 +449,16 @@ class CoconutTreesDetection:
         linear_svm_classifier.fit(self.bovwTrainingFeatures, self.labelTrainingArray)
         pred_test_labels = linear_svm_classifier.predict(self.bovwTestFeatures)
         print "Number of {0} Prediction Labels created! ".format(len(pred_test_labels))
+        calibrated_svc = CalibratedClassifierCV(linear_svm_classifier)
+        calibrated_svc.fit(self.bovwTrainingFeatures, self.labelTrainingArray)
+        self.predicted_probs = calibrated_svc.predict_proba(self.bovwTestFeatures)  # important to use predict_proba
+
         timeTrainAndPredict = time.time()
         print "Training and predicting takes {0:.2f} seconds".format(timeTrainAndPredict - timeTuningCparameter)
         print "It takes {0} seconds to classify in total!".format(timeTrainAndPredict - timeStart)
 
         np.save("/Users/ping/Documents/thesis/data/result/test_labels.npy", pred_test_labels)
+        np.save("/Users/ping/Documents/thesis/data/result/predicted_probs.npy",self.predicted_probs)
 
     def autosavePickleFile(self):
         while True:

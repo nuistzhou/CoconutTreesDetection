@@ -5,8 +5,8 @@ class Parameters:
     dataPath = "/Users/ping/Documents/thesis/data"
     samplePatchSize = 90
     maskPatchSize = 90*2
-    strideSize = 55
-    bovwCodebookNrRandomSamples = 100
+    strideSize = 15
+    bovwCodebookNrRandomSamples = 500
     cocoVecLayer = "coconutTrees"
     tempDir = os.path.join(dataPath, "temp")
     rgbImage = os.path.join(dataPath, "rgb_image.tif")

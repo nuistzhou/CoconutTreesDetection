@@ -18,7 +18,7 @@ def extract_code_for_largeImage(imgArray):
 
 def extract_code_for_Images_List(imgArrayList):
 	codebook_size = 200
-	max_nimages_per_class = 50
+	max_nimages_per_class = 500
 	# read images and extract descriptors
 	decriptorsList, labelsList = bovw_utils.extract_local_descriptor_ImageArrayList(imgArrayList)
 	codebook = fast_stratified_kmeans_codebook(decriptorsList, labelsList, codebook_size, max_nimages_per_class)
