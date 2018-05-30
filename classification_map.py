@@ -7,17 +7,18 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import gdal
 from osgeo.gdalconst import *
-import subprocess
+import cv2
 import tools
 
 
 def calPredictedProbsMatrix():
     test_labels = np.load(Parameters.predictionLabels)
     predicted_probs = np.load(Parameters.predictionProbs)
-    dim_y = 1773
-    dim_x = 5310
-    classification_image = np.zeros((dim_y, dim_x), dtype = np.uint8)
-    classification_map_sumup = np.zeros((dim_y, dim_x), dtype = np.uint8)
+
+
+    dim_y, dim_x  = cv2.imread(Parameters.rgb_image_clipped).shape[:-1]
+    # classification_image = np.zeros((dim_y, dim_x), dtype = np.uint8)
+    # classification_map_sumup = np.zeros((dim_y, dim_x), dtype = np.uint8)
     predicted_probs_matrix = np.zeros((dim_y, dim_x), dtype = np.float32)
     window_top_left_y = 0
     window_bottom_right_y = 90
@@ -30,10 +31,10 @@ def calPredictedProbsMatrix():
         window_top_left_x = 0
         while (window_bottom_right_x < dim_x - Parameters.samplePatchSize):
             if test_labels[counter] == 1:
-                classification_image[window_top_left_y: window_bottom_right_y,
-                              window_top_left_x: window_bottom_right_x] = 255
-                classification_map_sumup[window_top_left_y: window_bottom_right_y,\
-                              window_top_left_x: window_bottom_right_x] += 1
+                # classification_image[window_top_left_y: window_bottom_right_y,
+                #               window_top_left_x: window_bottom_right_x] = 255
+                # classification_map_sumup[window_top_left_y: window_bottom_right_y,\
+                #               window_top_left_x: window_bottom_right_x] += 1
                 predicted_probs_matrix[window_top_left_y: window_bottom_right_y,\
                               window_top_left_x: window_bottom_right_x] += predicted_probs[counter, 1]
                 counterCoco += 1
@@ -42,15 +43,12 @@ def calPredictedProbsMatrix():
             window_bottom_right_x += Parameters.strideSize
         window_top_left_y += Parameters.strideSize
         window_bottom_right_y += Parameters.strideSize
-#
-# print "Number of {0} coconut trees detected from {1} windows, with a percentage of " \
-#       "{2: .2f}%!".format(counterCoco, counter, float(counterCoco)/counter * 100)
 
-    predicted_probs_matrix_max = np.max(predicted_probs_matrix)
-    predicted_probs_matrix = (predicted_probs_matrix/predicted_probs_matrix_max) * 255
-    predicted_probs_matrix = predicted_probs_matrix.astype(np.uint8)
-    img_summed_up_predicted_probs = Image.fromarray(predicted_probs_matrix)
-    img_summed_up_predicted_probs.save("/Users/ping/thesis/data/result/classification_map_summed_up_probs.png")
+    # predicted_probs_matrix_max = np.max(predicted_probs_matrix)
+    # predicted_probs_matrix = (predicted_probs_matrix/predicted_probs_matrix_max) * 255
+    # predicted_probs_matrix = predicted_probs_matrix.astype(np.uint8)
+    # img_summed_up_predicted_probs = Image.fromarray(predicted_probs_matrix)
+    # img_summed_up_predicted_probs.save("/Users/ping/thesis/data/result/classification_map_summed_up_probs.png")
     return predicted_probs_matrix
 
 
