@@ -43,6 +43,7 @@ from codebook import extract_code_for_Images_List
 from bovw import extract_bovw_features
 from createRandomSamplePatches import extractRandomPatchCenterFromListWithoutMask
 from visualization import Visualization
+import classification_map
 
 # Initialize Qt resources from filePickle resources.py
 import resources
@@ -459,6 +460,12 @@ class CoconutTreesDetection:
 
         np.save("/Users/ping/Documents/thesis/data/result/test_labels.npy", pred_test_labels)
         np.save("/Users/ping/Documents/thesis/data/result/predicted_probs.npy",self.predicted_probs)
+
+        # Load the classification probability map
+        classification_map.calPredictedProbsMatrix() # calculate and export as .png image
+        classficationLayer = classification_map.loadRasterLayer()
+        classification_map.styleProbabilityMapRasterLayer(classficationLayer)
+
 
     def autosavePickleFile(self):
         while True:
