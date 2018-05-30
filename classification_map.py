@@ -5,7 +5,10 @@ from qgis.gui import *
 from qgis.core import *
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+import gdal
+import subprocess
 import tools
+
 
 def calPredictedProbsMatrix():
     test_labels = np.load('/Users/ping/Documents/thesis/data/result/test_labels.npy')
@@ -14,7 +17,7 @@ def calPredictedProbsMatrix():
     dim_x = 5310
     classification_image = np.zeros((dim_y, dim_x), dtype = np.uint8)
     classification_map_sumup = np.zeros((dim_y, dim_x), dtype = np.uint8)
-    predicted_probs_matrix = np.empty((dim_y, dim_x), dtype = np.float)
+    predicted_probs_matrix = np.zeros((dim_y, dim_x), dtype = np.float)
     window_top_left_y = 0
     window_bottom_right_y = 90
     counter = 0
@@ -51,12 +54,68 @@ def calPredictedProbsMatrix():
 
 
 def loadRasterLayer():
+    # self.rstClassPathext = os.path.join(rstDirname, self.shpClassFileName + ".tif")
+    #
+    # gdal.AllRegister()
+    # tifDrvr = gdal.GetDriverByName("GTiff")
+    # # open input with GDAL
+    # refRstrDt = gdal.Open(self.inputRaster, GA_ReadOnly)
+    # # number of x pixels
+    # refRstrCols = refRstrDt.RasterXSize
+    # # number of y pixels
+    # refRstrRows = refRstrDt.RasterYSize
+    # # check projections
+    # refRstrProj = refRstrDt.GetProjection()
+    # # pixel size and origin
+    # refRstGeoTrnsf = refRstrDt.GetGeoTransform()
+    #
+    # # Write Array into
+    # inputRasterBand = refRstrDt.GetRasterBand(1)
+    # dataTp = inputRasterBand.DataType
+    # # ROIRaster = tifDrvr.Create(self.rstClassPathext, refRstrCols, refRstrRows, 1, dataTp)
+    # ROIRaster = tifDrvr.Create(self.rstClassPathext, refRstrCols, refRstrRows, 1, gdal.GDT_UInt32)
+    # ROIRaster.SetGeoTransform([refRstGeoTrnsf[0], refRstGeoTrnsf[1], 0, refRstGeoTrnsf[3], 0, refRstGeoTrnsf[5]])
+    # ROIRaster.SetProjection(refRstrProj)
+    # ROIRasterBand = ROIRaster.GetRasterBand(1)
+    # ROIRasterBand.SetNoDataValue(0)
+    # # write array
+    # # class_labels = self.classification_labels.astype(np.uint32)
+    # ROIRasterBand.WriteArray(self.classification_labels)
+    # stat = ROIRasterBand.GetStatistics(0, 1)
+    #
+    # # close bands
+    # ROIRasterBand = None
+    # # close rasters
+    # ROIRaster = None
+    # refRstrDt = None
+    inputImage = "/Users/ping/thesis/data/result/classification_map_summed_up_probs.png"
+    outputImage = "/Users/ping/thesis/data/result/classification_map_summed_up_probs_georeferenced.tif"
     layer = QgsRasterLayer("/Users/ping/thesis/data/result/classification_map_summed_up_probs.png", "Probability_map")
     crs_layer = tools.getLayerByName("rgb_image_clipped")
+    ext = crs_layer.extent()
+    xmin = ext.xMinimum()
+    xmax = ext.xMaximum()
+    ymin = ext.yMinimum()
+    ymax = ext.yMaximum()
+    coords = "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax)
     crs = crs_layer.crs()
     layer.setCrs(crs)
+    # Set transparent raster value
+    rasterTransparency = layer.renderer().rasterTransparency()
+    listPixels = []
+    pixel = QgsRasterTransparency.TransparentThreeValuePixel()
+    pixel.red = 255
+    pixel.green = 255
+    pixel.blue = 255
+    pixel.percentTransparent = 100
+    listPixels.append(pixel)
+    rasterTransparency.setTransparentThreeValuePixelList(listPixels)
+    layer.triggerRepaint()
     QgsMapLayerRegistry.instance().addMapLayer(layer)
+    # subprocess.call('gdal_translate -ot FLOAT32 -of AAIGrid terrain.tif terrain.asc', shell=True)
+    # gdal.Translate(outputImage, inputImage, )
     return layer
+
 
 
 def styleProbabilityMapRasterLayer(layer):
