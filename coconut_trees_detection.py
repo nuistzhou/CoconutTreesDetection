@@ -462,8 +462,8 @@ class CoconutTreesDetection:
         np.save("/Users/ping/Documents/thesis/data/result/predicted_probs.npy",self.predicted_probs)
 
         # Load the classification probability map
-        classification_map.calPredictedProbsMatrix() # calculate and export as .png image
-        classficationLayer = classification_map.loadRasterLayer()
+        predicted_probs_matrix = classification_map.calPredictedProbsMatrix()
+        classficationLayer = classification_map.loadRasterLayer(predicted_probs_matrix)
         classification_map.styleProbabilityMapRasterLayer(classficationLayer)
 
 

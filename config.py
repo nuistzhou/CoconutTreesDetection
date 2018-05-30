@@ -26,6 +26,11 @@ class Parameters:
     avgCocoImgEnlarged = os.path.join(dataPath, "result/avgCocoEnlarged.png")
     resultPath = "/Users/ping/Documents/thesis/results"
 
+    predictionLabels = '/Users/ping/Documents/thesis/data/result/test_labels.npy'
+    predictionProbs = "/Users/ping/Documents/thesis/data/result/predicted_probs.npy"
+    rstClassPathext = "/Users/ping/thesis/data/resultClassification_map_summed_up_probs.tif"
+    rgb_image = "/Users/ping/thesis/data/result/rgb_image_clipped.tif"
+
     def __init__(self, layer):
         self.layer = layer
         self.pixSizeX = None #Pixel size of X axis
