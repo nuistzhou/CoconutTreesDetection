@@ -9,6 +9,7 @@ from tabulate import tabulate
 from sklearn import svm
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import GridSearchCV
+from sklearn import model_selection
 
 from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix
@@ -17,8 +18,12 @@ from sklearn.preprocessing import normalize
 
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_recall_fscore_support
+from sklearn.ensemble import RandomForestClassifier
+
+from sklearn.model_selection import RandomizedSearchCV
 
 from config import Parameters
+
 
 
 def svmRBF_grid_search(dataset, labels):
@@ -36,6 +41,38 @@ def linearSVM_grid_search(dataset, labels):
     clf = GridSearchCV(svm.LinearSVC(C=1), tuned_parameters, cv=3)
     clf.fit(dataset, labels)
     return clf.best_params_['C']
+
+
+def evaluate(model, test_features, test_labels):
+    predictions = model.predict(test_features)
+    errors = abs(predictions - test_labels)
+    mape = 100 * np.mean(errors / test_labels)
+    accuracy = 100 - mape
+    print('Model Performance')
+    print('Average Error: {:0.4f} degrees.'.format(np.mean(errors)))
+    print('Accuracy = {:0.2f}%.'.format(accuracy))
+
+    return accuracy
+
+def randomForestGridSearch(train_features, train_labels, test_features, test_labels):
+    # random_grid = {"n_estimators" : [500],
+    #                'max_depth': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+    #                 'max_features': ['auto','sqrt']}
+    # print random_grid
+    # rfc = RandomForestClassifier(n_jobs=-1, oob_score=True)
+    # CV_rfc = GridSearchCV(estimator=rfc, param_grid=random_grid, cv=3)
+    # print "fitting..."
+    # CV_rfc.fit(train_features, train_labels)
+    # print CV_rfc.best_params_
+
+    # Optimized RF classifier
+    rfc = RandomForestClassifier(n_estimators=500, max_depth=40, max_features='auto')
+    rfc.fit(train_features, train_labels)
+    print "The mean accuracy is:"
+    print rfc.score(test_features, test_labels)
+
+
+
 
 def print_confusion_matrix(confusionMatrix, num_classes, file):
     """pretty print for confusion matrixes"""
@@ -65,7 +102,7 @@ def main(train_dataset_filename, train_labels_filename,
     # parser.add_argument("test_dataset_filename", type=str, help="test_dataset_filename")
     # parser.add_argument("test_labels_filename", type=str, help="test_labels_filename")
     # parser.add_argument("classifier", type=str, help="test_labels_filename", choices=['svm', 'linear_svm'])
-
+    #
     # args = parser.parse_args()
 
     # Get the current descriptor name from the "train_dataset_filename"
@@ -108,6 +145,10 @@ def main(train_dataset_filename, train_labels_filename,
         print "Params-> c value {}".format(c)
         f.write("Params-> c value {}\n".format(c))
         cls = svm.LinearSVC(C=c)
+    elif classifier == "rf":
+        cls = RandomForestClassifier(n_estimators=500, max_depth=40, max_features='auto')
+        cls.fit(train_data, train_labels)
+
     else:
         c , gamma = svmRBF_grid_search(train_data, train_labels)
         print "Params -> C: "+ str(c) + ", gamma: "+str(gamma)
@@ -147,10 +188,9 @@ def main(train_dataset_filename, train_labels_filename,
 
     f.close()
 
-
-# if __name__ == '__main__':
-    # main("hog_lower_features.npy", "hog_lower_labels.npy", "hog_upper_features.npy",
-    #      "hog_upper_labels.npy", 'svm')
+if __name__ == '__main__':
+    main("hog_lower_features.npy", "hog_lower_labels.npy", "hog_upper_features.npy",
+         "hog_upper_labels.npy", 'svm')
     # main("sift_lower_features.npy", "sift_lower_labels.npy", "sift_upper_features.npy",
     #      "sift_upper_labels.npy", 'svm')
     # main("surf_lower_features.npy", "surf_lower_labels.npy", "surf_upper_features.npy",
@@ -172,4 +212,6 @@ def main(train_dataset_filename, train_labels_filename,
     #
     # main("bow100_surf_lower_features.npy", "bow100_surf_lower_labels.npy", "bow100_surf_upper_features.npy", "bow100_surf_upper_labels.npy", "linear_svm")
     # main("bow50_surf_lower_features.npy", "bow50_surf_lower_labels.npy", "bow50_surf_upper_features.npy", "bow50_surf_upper_labels.npy", "linear_svm")
-
+    # #
+    # main("bow200_sift_lower_features.npy", "bow200_sift_lower_labels.npy", "bow200_sift_upper_features.npy",
+    #      "bow200_sift_upper_labels.npy", "rf")

@@ -34,7 +34,9 @@ import pickle
 import numpy as np
 from PIL import Image
 from sklearn import svm
+import gdal
 from sklearn.calibration import CalibratedClassifierCV
+from sklearn.externals import joblib # For model saving
 import cv2
 from clickTool import *
 from tools import *
@@ -44,6 +46,8 @@ from bovw import extract_bovw_features
 from createRandomSamplePatches import extractRandomPatchCenterFromListWithoutMask
 from visualization import Visualization
 import classification_map
+from extractTraingSamplePatches import getPointPixelCoordinates
+
 
 # Initialize Qt resources from filePickle resources.py
 import resources
@@ -208,12 +212,16 @@ class CoconutTreesDetection:
         self.imgFilename = "/Users/ping/Documents/thesis/data/proposal_test/rgb_image_clipped.tif"
         self.layer = self.getLayerByName('rgb_image_clipped')
         self.windowArrayList = list()
-        self.imgArray = cv2.imread(self.imgFilename)
+        # self.imgArray = cv2.imread(self.imgFilename)
+        self.imgArray = gdal.Open(self.imgFilename).ReadAsArray().astype(np.uint8)
+        self.imgArray = np.transpose(self.imgArray, (1, 2, 0))
         self.bovwTrainingFeatures = None
         self.labelTrainingArray = None
         self.predicted_probs = None
-
-
+        self.pred_test_labels = None
+        self.windowsCentersList = list()
+        self.windowPositiveIndexList = list()
+        self.windowNegativeIndexList = list()
 
         self.config = Parameters(self.layer)
         self.config.readRasterConfig()
@@ -229,7 +237,8 @@ class CoconutTreesDetection:
         self.uiDockWidgetAnnotation.btnAddAnnotationNoncoco.clicked.connect(self.addAnnotationsNoncoco)
         self.uiDockWidgetAnnotation.btnDeleteAllAnnotation.clicked.connect(self.deleteAllAnnnotaions)
         self.uiDockWidgetAnnotation.btnVisualize.clicked.connect(self.tsneVisualization)
-
+        self.uiDockWidgetAnnotation.btnTest.clicked.connect(self.calReall)
+        self.uiDockWidgetAnnotation.btnValidate.clicked.connect(self.validate)
 
 
 
@@ -369,6 +378,8 @@ class CoconutTreesDetection:
             self.codebook = extract_code_for_Images_List(randomPatchesArrayList)
             np.save(Parameters.codebookFileName, self.codebook)
             print "Codebook built!"
+
+
         else:
             self.codebook = np.load(Parameters.codebookFileName)
             print "Codebook loaded!"
@@ -379,6 +390,8 @@ class CoconutTreesDetection:
             timeEndPreprocessing = time.time()
             print "The whole preprocessing takes {0: .2f} seconds!".format(timeEndPreprocessing - timeStart)
         else:
+            with open(os.path.join(Parameters.tempDir, "proposalWindowCentersList.pkl"), 'r') as f:
+                self.windowsCentersList = pickle.load(f)
             self.bovwTestFeatures = np.load(Parameters.testFeatures)
             print "Test features loaded!"
 
@@ -404,10 +417,16 @@ class CoconutTreesDetection:
                 windowArray = self.imgArray[window_top_left_y : window_bottom_right_y,
                               window_top_left_x : window_bottom_right_x, :]
                 self.windowArrayList.append(windowArray)
+                windowCenterTuple = ((window_top_left_x + Parameters.samplePatchSize/2),
+                               (window_top_left_y + Parameters.samplePatchSize/2))
+                self.windowsCentersList.append(windowCenterTuple)
                 window_top_left_x += Parameters.strideSize
                 window_bottom_right_x += Parameters.strideSize
             window_top_left_y  += Parameters.strideSize
             window_bottom_right_y += Parameters.strideSize
+
+        with open(os.path.join(Parameters.tempDir, 'proposalWindowCentersList.pkl'), 'w') as f:
+            pickle.dump(self.windowsCentersList, f)
 
         print "All sliding windows created!"
         timeGeneratingSlindingwindows = time.time()
@@ -446,25 +465,260 @@ class CoconutTreesDetection:
         print "Tuned C parameter is {0}".format(c_tuned)
         print "Tuning C parameter for the SVM takes {0:.2f} seconds".format(timeTuningCparameter - timeExtractTrainingFeatures)
 
-        linear_svm_classifier = svm.LinearSVC(C = c_tuned)
-        linear_svm_classifier.fit(self.bovwTrainingFeatures, self.labelTrainingArray)
-        pred_test_labels = linear_svm_classifier.predict(self.bovwTestFeatures)
-        print "Number of {0} Prediction Labels created! ".format(len(pred_test_labels))
-        calibrated_svc = CalibratedClassifierCV(linear_svm_classifier)
-        calibrated_svc.fit(self.bovwTrainingFeatures, self.labelTrainingArray)
-        self.predicted_probs = calibrated_svc.predict_proba(self.bovwTestFeatures)  # important to use predict_proba
+        # Only train the new model when the model file is not exists on the disk
+        if not os.path.isfile(Parameters.trainedModelPath):
+            linear_svm_classifier = svm.LinearSVC(C = c_tuned)
+
+            calibrated_svc = CalibratedClassifierCV(linear_svm_classifier)
+            calibrated_svc.fit(self.bovwTrainingFeatures, self.labelTrainingArray)
+
+        # linear_svm_classifier.fit(self.bovwTrainingFeatures, self.labelTrainingArray)
+            # save the trained model to a pickle file locally on the disk
+            # joblib.dump(linear_svm_classifier, Parameters.trainedModelPath)
+            joblib.dump(calibrated_svc, Parameters.trainedModelPath)
+
+        else:
+        # load the previsouly trained model
+        #     linear_svm_classifier = joblib.load(Parameters.trainedModelPath)
+            calibrated_svc = joblib.load(Parameters.trainedModelPath)
+
+        self.predicted_probs = calibrated_svc.predict_proba(self.bovwTestFeatures)
+
+
+        # self.pred_test_labels = linear_svm_classifier.predict(self.bovwTestFeatures)
+        # calibrated_svc = CalibratedClassifierCV(linear_svm_classifier)
+        # calibrated_svc.fit(self.bovwTrainingFeatures, self.labelTrainingArray)
+        # self.predicted_probs = calibrated_svc.predict_proba(self.bovwTestFeatures)  # important to use predict_proba
+        self.pred_test_labels = np.argmax(self.predicted_probs, 1)
+        print "Number of {0} Prediction Labels created! ".format(len(self.pred_test_labels))
+
 
         timeTrainAndPredict = time.time()
         print "Training and predicting takes {0:.2f} seconds".format(timeTrainAndPredict - timeTuningCparameter)
         print "It takes {0} seconds to classify in total!".format(timeTrainAndPredict - timeStart)
 
-        np.save("/Users/ping/Documents/thesis/data/result/test_labels.npy", pred_test_labels)
-        np.save("/Users/ping/Documents/thesis/data/result/predicted_probs.npy",self.predicted_probs)
+        np.save(Parameters.predictionLabels, self.pred_test_labels)
+        np.save(Parameters.predictionProbs,self.predicted_probs)
 
         # Load the classification probability map
-        predicted_probs_matrix = classification_map.calPredictedProbsMatrix()
-        classficationLayer = classification_map.loadRasterLayer(predicted_probs_matrix)
+        predicted_probs_matrix = classification_map.calPredictedProbsMatrix(Parameters.rgb_image_clipped_tif, self.pred_test_labels, self.predicted_probs)
+        classficationLayer = classification_map.loadRasterLayer(predicted_probs_matrix, Parameters.rgb_image_clipped_tif, Parameters.rstClassPathext, "probability_map")
         classification_map.styleProbabilityMapRasterLayer(classficationLayer)
+
+        # Separate windows classified as trees or no
+        for i,label in enumerate(self.pred_test_labels):
+            if label == 0:
+                self.windowNegativeIndexList.append(i)
+            else:
+                self.windowPositiveIndexList.append(i)
+
+    def calReall(self):
+        """Calculate recall based on the confusion matrix."""
+        distanceThreshold = 45 # unit: pixel
+        countedWindowsIndexList = list()
+        countedWindowsCentersList = list()
+
+        # Load the ground truths
+        groundTruthCentersList = featurePoint2PixelPosition("cocotrees_clipped", "rgb_image_clipped")
+        tpCounter = 0 # true positive counter
+        fnCounter = 0 # false negative counter
+        tnCounter = 0 # true negative counter
+        fpCounter = 0 # false positive counter
+
+        print len(groundTruthCentersList)
+        print len(self.windowsCentersList)
+        print len(self.windowNegativeIndexList), "Negative prediction"
+        print len(self.windowPositiveIndexList), "Positive prediction"
+
+        # True positive (TP) and False negative (FN):
+        for groundtruth in groundTruthCentersList:
+            found = False
+            for windowCenterIndex in self.windowPositiveIndexList:
+                distance = calDistanceBetweenCenterTuple(groundtruth, self.windowsCentersList[windowCenterIndex])
+                if distance <= distanceThreshold:
+                    tpCounter += 1
+                    found = True
+                    break
+            if not found:
+                fnCounter += 1
+        # True negative (TN) and False positive (FP):
+        for i,window in enumerate(self.windowsCentersList):
+            found = False
+            if (i in self.windowNegativeIndexList):
+                # for groundtruthCenter in groundTruthCentersList:
+                #     distance = calDistanceBetweenCenterTuple(groundtruthCenter, window)
+                #     if distance < distanceThreshold:
+                #         found = True
+                #         break
+                # if not found:
+                #     tnCounter += 1
+                pass
+            else:
+                # if i not in countedWindowsIndexList:
+                for groundtruthCenter in groundTruthCentersList:
+                    distance = calDistanceBetweenCenterTuple(groundtruthCenter, window)
+                    if distance <= distanceThreshold:
+                        found = True
+                        break
+                if found:
+                    continue
+
+                overlap = False
+                for countedWindow in countedWindowsCentersList:
+                    d = calDistanceBetweenCenterTuple(countedWindow, window)
+                    if d <= distanceThreshold:
+                        overlap = True
+                        break
+
+                if not overlap:
+                    countedWindowsIndexList.append(i)
+                    countedWindowsCentersList.append(window)
+                    fpCounter += 1
+
+        print "False positive, true positive, true negative, false negative:", fpCounter, tpCounter, tnCounter,fnCounter
+        recall = float(tpCounter)/(tpCounter + fnCounter)  * 100
+        precision = float(tpCounter)/(tpCounter + fpCounter) * 100
+        print "The recalll is {0} and the precision is {1} for distanceThreshold {2}".format(recall, precision,distanceThreshold)
+
+
+    def calReallValidation(self, windowsCentersList,
+                           windowNegativeIndexList, windowPositiveIndexList):
+        """Calculate recall based on the confusion matrix."""
+        distanceThreshold = 45 # unit: pixel
+        countedWindowsIndexList = list()
+        countedWindowsCentersList = list()
+
+        # Load the ground truths
+        groundTruthCentersList = featurePoint2PixelPosition(Parameters.groundTruthLayername_validation, Parameters.rgb_image_layername_validation)
+        tpCounter = 0 # true positive counter
+        fnCounter = 0 # false negative counter
+        tnCounter = 0 # true negative counter
+        fpCounter = 0 # false positive counter
+
+        print len(groundTruthCentersList)
+        print len(windowsCentersList)
+        print len(windowNegativeIndexList), "Negative prediction"
+        print len(windowPositiveIndexList), "Positive prediction"
+
+        # True positive (TP) and False negative (FN):
+        for groundtruth in groundTruthCentersList:
+            found = False
+            for windowCenterIndex in windowPositiveIndexList:
+                distance = calDistanceBetweenCenterTuple(groundtruth, windowsCentersList[windowCenterIndex])
+                if distance <= distanceThreshold:
+                    tpCounter += 1
+                    found = True
+                    break
+            if not found:
+                fnCounter += 1
+        # True negative (TN) and False positive (FP):
+        for i,window in enumerate(windowsCentersList):
+            found = False
+            if (i in windowNegativeIndexList):
+                # for groundtruthCenter in groundTruthCentersList:
+                #     distance = calDistanceBetweenCenterTuple(groundtruthCenter, window)
+                #     if distance < distanceThreshold:
+                #         found = True
+                #         break
+                # if not found:
+                #     tnCounter += 1
+                pass
+            else:
+                # if i not in countedWindowsIndexList:
+                for groundtruthCenter in groundTruthCentersList:
+                    distance = calDistanceBetweenCenterTuple(groundtruthCenter, window)
+                    if distance <= distanceThreshold:
+                        found = True
+                        break
+                if found:
+                    continue
+
+                overlap = False
+                for countedWindow in countedWindowsCentersList:
+                    d = calDistanceBetweenCenterTuple(countedWindow, window)
+                    if d <= distanceThreshold:
+                        overlap = True
+                        break
+
+                if not overlap:
+                    countedWindowsIndexList.append(i)
+                    countedWindowsCentersList.append(window)
+                    fpCounter += 1
+
+        print "Validation: False positive, true positive, true negative, false negative:", fpCounter, tpCounter, tnCounter,fnCounter
+        recall = float(tpCounter)/(tpCounter + fnCounter)  * 100
+        precision = float(tpCounter)/(tpCounter + fpCounter) * 100
+        print "Validation: The recalll is {0} and the precision is {1} for distanceThreshold {2}".format(recall, precision,distanceThreshold)
+
+    def validate(self):
+        imgArray = gdal.Open(Parameters.validationImage).ReadAsArray().astype(np.uint8)
+        imgArray = np.transpose(imgArray, (1, 2, 0))
+        layer = getLayerByName(Parameters.rgb_image_layername_validation)
+        windowArrayList = list()
+        windowsCentersList = list()
+
+        pixel_size_x = layer.rasterUnitsPerPixelX()
+        pixel_size_y = layer.rasterUnitsPerPixelY()
+        top_left_x = layer.extent().xMinimum()
+        top_left_y = layer.extent().yMaximum()
+        bottom_right_x = layer.extent().xMaximum()
+        bottom_right_y = layer.extent().yMinimum()
+        dim_x = int((bottom_right_x - top_left_x) / pixel_size_x)
+        dim_y = int((top_left_y - bottom_right_y) / pixel_size_y)
+
+        window_top_left_y = 0
+        window_bottom_right_y = 90
+        while window_bottom_right_y < dim_y - Parameters.samplePatchSize:
+            window_bottom_right_x = 90
+            window_top_left_x = 0
+            while (window_bottom_right_x < dim_x - Parameters.samplePatchSize):
+                windowArray = imgArray[window_top_left_y: window_bottom_right_y,
+                              window_top_left_x: window_bottom_right_x, :]
+                windowArrayList.append(windowArray)
+                windowCenterTuple = ((window_top_left_x + Parameters.samplePatchSize / 2),
+                                     (window_top_left_y + Parameters.samplePatchSize / 2))
+                windowsCentersList.append(windowCenterTuple)
+                window_top_left_x += Parameters.strideSize
+                window_bottom_right_x += Parameters.strideSize
+            window_top_left_y += Parameters.strideSize
+            window_bottom_right_y += Parameters.strideSize
+
+        ################################################
+        codebook = np.load(Parameters.codebookFileName)
+
+        #################################################################
+
+        print "Extracting sliding windows features..."
+        bovwTestFeatures = extract_bovw_features(windowArrayList, codebook)[0]
+        np.save(Parameters.validationFeatures, bovwTestFeatures)
+        print "All sliding window features extracted! "
+
+        # predict
+        calibrated_svc = joblib.load(Parameters.trainedModelPath)
+
+        predicted_probs = calibrated_svc.predict_proba(bovwTestFeatures)
+        predictedLabels = np.argmax(predicted_probs, 1)
+
+
+        # Load the classification probability map
+        predicted_probs_matrix = classification_map.calPredictedProbsMatrix(Parameters.validationImage, predictedLabels, predicted_probs)
+        classficationLayer = classification_map.loadRasterLayer(predicted_probs_matrix, Parameters.validationImage, Parameters.rstClassPathextValidation, "probability_map_validation")
+        classification_map.styleProbabilityMapRasterLayer(classficationLayer)
+
+        windowNegativeIndexList = list()
+        windowPositiveIndexList = list()
+        # Separate windows classified as trees or no
+        for i, label in enumerate(predictedLabels):
+            if label == 0:
+                windowNegativeIndexList.append(i)
+            else:
+                windowPositiveIndexList.append(i)
+
+        print len(windowPositiveIndexList), len(windowNegativeIndexList)
+
+        self.calReallValidation(windowsCentersList, windowNegativeIndexList, windowPositiveIndexList)
+        np.save(Parameters.predictionLabels_validation, predictedLabels)
+        np.save(Parameters.predictionProbs_validation, predicted_probs)
 
 
     def autosavePickleFile(self):

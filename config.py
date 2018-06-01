@@ -10,27 +10,46 @@ class Parameters:
     cocoVecLayer = "coconutTrees"
     tempDir = os.path.join(dataPath, "temp")
     rgbImage = os.path.join(dataPath, "rgb_image.tif")
+    rgb_image_clipped_png = "/Users/ping/Documents/thesis/data/result/rgb_image_clipped.png"
     patchesNumpyArray = os.path.join(dataPath, "patchesNumpyArrays")
     rgbImageUpper = os.path.join(dataPath, 'rgb_image_upperLayer.tif')
     featureDescriptorPath = os.path.join(dataPath, "featureDescriptors")
     mergedFeatureDescriptorPath = os.path.join(dataPath, "featureDescriptors/merged_features")
     bowFeatureDescriptorPath = os.path.join(dataPath, "featureDescriptors/bow_features")
     performanceTestDir = os.path.join(dataPath, "performance_test")
-    annotationCocoFile = os.path.join(dataPath, "annotationCoco.pkl")
-    annotationNoncocoFile = os.path.join(dataPath, "annotationNoncoco.pkl")
-    codebookFileName = os.path.join(tempDir, "codebook.npy")
-    testFeatures = os.path.join(tempDir, "testFeatures.npy")
 
     maskRgbImage = os.path.join(dataPath, "maskRgbImage")
     avgCocoImg = os.path.join(dataPath, "result/avgCoco.png")
     avgCocoImgEnlarged = os.path.join(dataPath, "result/avgCocoEnlarged.png")
     resultPath = "/Users/ping/Documents/thesis/results"
 
-    rgb_image_clipped = "/Users/ping/thesis/data/result/rgb_image_clipped.png"
-    predictionLabels = '/Users/ping/Documents/thesis/data/result/test_labels.npy'
-    predictionProbs = "/Users/ping/Documents/thesis/data/result/predicted_probs.npy"
-    rstClassPathext = "/Users/ping/thesis/data/resultClassification_map_summed_up_probs.tif"
-    rgb_image = "/Users/ping/thesis/data/result/rgb_image_clipped.tif"
+    # To be moved after each phase
+    predictionLabels = os.path.join(tempDir, "split1/test_labels.npy")
+    predictionProbs = os.path.join(tempDir, "split1/predicted_probs.npy")
+    rstClassPathext = os.path.join(tempDir, "split1/resultClassification_map_summed_up_probs.tif")
+    trainedModelPath = os.path.join(tempDir, 'split1/trainedModel.pkl')
+    annotationCocoFile = os.path.join(tempDir, "split1/annotationCoco.pkl")
+    annotationNoncocoFile = os.path.join(dataPath, "split1/annotationNoncoco.pkl")
+
+    # No move
+    rgb_image_layername = "rgb_image_split1"
+    groundTruthLayername = "coconut_split1"
+    rgb_image_clipped_tif = os.path.join(tempDir, "split1/rgb_image_split1.tif")
+    testFeatures = os.path.join(tempDir, "split1/testFeatures.npy")
+    # and ground truths shapefile
+
+    #For all different images
+    codebookFileName = os.path.join(tempDir, "codebook.npy")
+
+    # Validation
+    validationImage = os.path.join(tempDir, "split2/rgb_image_split2.tif")
+    rstClassPathextValidation = os.path.join(tempDir, "split2/validationClassification_map_summed_up_probs_split2.tif")
+    rgb_image_layername_validation = "rgb_image_split2"
+    groundTruthLayername_validation = "coconut_split2"
+    predictionLabels_validation = os.path.join(tempDir, "split2/test_labels.npy")
+    predictionProbs_validation = os.path.join(tempDir, "split2/predicted_probs.npy")
+    validationFeatures = os.path.join(tempDir, 'split2/validationFeatures.npy')
+
 
     def __init__(self, layer):
         self.layer = layer

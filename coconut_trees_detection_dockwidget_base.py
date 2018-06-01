@@ -66,6 +66,14 @@ class Ui_DockWidget(object):
         self.btnVisualize = QtGui.QPushButton(self.dockWidgetContents)
         self.btnVisualize.setGeometry(QtCore.QRect(50, 290, 110, 32))
         self.btnVisualize.setObjectName(_fromUtf8("btnVisualize"))
+        self.btnTest = QtGui.QPushButton(self.dockWidgetContents)
+        self.btnTest.setGeometry(QtCore.QRect(180, 290, 110, 32))
+        self.btnTest.setObjectName(_fromUtf8("btnTest"))
+
+        # Validate
+        self.btnValidate = QtGui.QPushButton(self.dockWidgetContents)
+        self.btnValidate.setGeometry(QtCore.QRect(50, 350, 110, 32))
+        self.btnValidate.setObjectName(_fromUtf8("btnValidate"))
 
 
         # #-----------widget test for accessing mouse coordinates, remove later
@@ -88,6 +96,9 @@ class Ui_DockWidget(object):
         self.btnAddAnnotationNoncoco.setText(_translate("DockWidget", "Add Others", None))
         self.btnDeleteAllAnnotation.setText(_translate("DockWidget", "Delete All", None))
         self.btnVisualize.setText(_translate("DockWidget", "Visualize", None))
+        self.btnTest.setText(_translate("DockWidget", "Run Test", None))
+        self.btnValidate.setText(_translate("DockWidget", "Run Validation", None))
+
 
 
 

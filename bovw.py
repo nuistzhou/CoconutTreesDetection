@@ -72,5 +72,5 @@ def main():
     np.save(output_labels_filename, list_img_labels)
 
 #
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()

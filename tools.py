@@ -1,3 +1,4 @@
+import math
 from qgis.core import *
 from qgis.gui import *
 from PyQt4.QtCore import *
@@ -76,6 +77,28 @@ def getPointPixelCoordinates(points_layer_name, raster_layer_name):
         point_pixel_coords = geoCoord2PixelPosition(point_crs_coord, top_left_x, top_left_y, pixel_size_x, pixel_size_y)
         pixel_coords_array.append(point_pixel_coords)
     return pixel_coords_array
+
+def featurePoint2PixelPosition(points_layer_name, raster_layer_name):
+    points_layer = getLayerByName(points_layer_name)
+    features_iter = points_layer.getFeatures()
+    features_array = []
+    for feature in features_iter:
+        features_array.append(feature)
+
+    raster_layer = getLayerByName(raster_layer_name)
+    pixel_size_x = raster_layer.rasterUnitsPerPixelX()
+    pixel_size_y = raster_layer.rasterUnitsPerPixelY()
+    top_left_x = raster_layer.extent().xMinimum()
+    top_left_y = raster_layer.extent().yMaximum()
+    pixel_coords_list = []
+    for feature in features_array:
+        point_crs_coord = feature.geometry().asPoint()
+        point_pixel_coords = (int(round((point_crs_coord.x() - top_left_x) / pixel_size_x)),
+                              int(round((top_left_y - point_crs_coord.y()) / pixel_size_y)))
+        pixel_coords_list.append(point_pixel_coords)
+
+    return pixel_coords_list
+
 
 def createFeatureLayer(rgbLayerName, pixCoordsList, chopsize):
     rgb_upper_layer = getLayerByName(rgbLayerName)
@@ -171,3 +194,10 @@ def getTSNEFeatures(features):
     print "y min {} max {}".format(np.min(features2D[:, 1]), np.max(features2D[:, 1]))
 
     return features2D
+
+def calDistanceBetweenCenterTuple(center1, center2):
+    """Calculate euclidistance between center tuples."""
+    d1 = (center1[0] - center2[0])**2
+    d2 = (center1[1] - center2[1])**2
+    d = math.sqrt(d1 + d2)
+    return d
