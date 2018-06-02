@@ -399,9 +399,7 @@ class CoconutTreesDetection:
         start_time = time.time()
         # Generate sliding windows
         print "Start generating sliding windows..."
-        if not ((os.path.isfile(Parameters.testFeatures)) or
-                os.path.isfile(Parameters.testWindowCentersList)):
-
+        if not os.path.isfile(Parameters.testWindowCentersList):
             pixel_size_x = self.layer.rasterUnitsPerPixelX()
             pixel_size_y = self.layer.rasterUnitsPerPixelY()
             top_left_x = self.layer.extent().xMinimum()
@@ -440,6 +438,13 @@ class CoconutTreesDetection:
             print "Generating {0} sliding windows with stride size of {1} takes {2:.2f} seconds".format(len(self.windowArrayList), Parameters.strideSize, timeGeneratingSlindingwindows - start_time)
 
             print "Extracting sliding windows features..."
+
+        else:
+            with open(Parameters.testWindowCentersList, 'r') as f:
+                self.windowsCentersList = pickle.load(f)
+
+        if not os.path.isfile(Parameters.testFeatures):
+
             self.bovwTestFeatures = extract_bovw_features(self.windowArrayList, self.codebook)[0]
 
             with open(Parameters.testFeatures, 'w') as f:
@@ -449,13 +454,11 @@ class CoconutTreesDetection:
             timeExtractWindowFeatures = time.time()
             print "Extracting features from all sliding windows takes {0:.2f} seconds".format(timeExtractWindowFeatures - timeGeneratingSlindingwindows)
 
-        else:
-            with open(Parameters.testWindowCentersList, 'r') as f:
-                self.windowsCentersList = pickle.load(f)
+
 
             # with open(Parameters.testWindowArrayList, 'r') as f:
             #     self.windowArrayList = pickle.load(f)
-
+        else:
             with open(Parameters.testFeatures, 'r') as f:
                 self.bovwTestFeatures = pickle.load(f)
             # print "The number of {0} test features are created!".format(len(self.bovwTestFeatures))
