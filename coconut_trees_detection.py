@@ -398,7 +398,6 @@ class CoconutTreesDetection:
     def extractProposalFeaturesForPrediction(self):
         start_time = time.time()
         # Generate sliding windows
-        print "Start generating sliding windows..."
         if not os.path.isfile(Parameters.testWindowCentersList):
             pixel_size_x = self.layer.rasterUnitsPerPixelX()
             pixel_size_y = self.layer.rasterUnitsPerPixelY()
@@ -429,19 +428,20 @@ class CoconutTreesDetection:
 
             with open(Parameters.testWindowCentersList, 'w') as f:
                 pickle.dump(self.windowsCentersList, f)
+            print "All window centers list created!"
             #
             # with open(Parameters.testWindowArrayList, 'w') as f:
             #     pickle.dump(self.windowArrayList, f)
 
-            print "All sliding windows created!"
+            print "All  windows created!"
             timeGeneratingSlindingwindows = time.time()
             print "Generating {0} sliding windows with stride size of {1} takes {2:.2f} seconds".format(len(self.windowArrayList), Parameters.strideSize, timeGeneratingSlindingwindows - start_time)
 
-            print "Extracting sliding windows features..."
 
         else:
             with open(Parameters.testWindowCentersList, 'r') as f:
                 self.windowsCentersList = pickle.load(f)
+            print "Window Centers List loaded!"
 
         if not os.path.isfile(Parameters.testFeatures):
 
@@ -450,7 +450,7 @@ class CoconutTreesDetection:
             with open(Parameters.testFeatures, 'w') as f:
                 pickle.dump(self.bovwTestFeatures, f)
 
-            print "All sliding window features extracted! "
+            print "All window bovw features extracted! "
             timeExtractWindowFeatures = time.time()
             print "Extracting features from all sliding windows takes {0:.2f} seconds".format(timeExtractWindowFeatures - timeGeneratingSlindingwindows)
 
@@ -461,7 +461,7 @@ class CoconutTreesDetection:
         else:
             with open(Parameters.testFeatures, 'r') as f:
                 self.bovwTestFeatures = pickle.load(f)
-            # print "The number of {0} test features are created!".format(len(self.bovwTestFeatures))
+            print "Window bovw features loaded!"
 
     def classify(self):
         timeStart = time.time()
