@@ -209,8 +209,8 @@ class CoconutTreesDetection:
             parent=self.iface.mainWindow())
 
         # imgFilename = self.iface.activeLayer().dataProvider().dataSourceUri()
-        self.imgFilename = "/Users/ping/Documents/thesis/data/proposal_test/rgb_image_clipped.tif"
-        self.layer = self.getLayerByName('rgb_image_clipped')
+        self.imgFilename = Parameters.rgb_image_clipped_tif
+        self.layer = self.getLayerByName(Parameters.rgb_image_layername)
         self.windowArrayList = list()
         # self.imgArray = cv2.imread(self.imgFilename)
         self.imgArray = gdal.Open(self.imgFilename).ReadAsArray().astype(np.uint8)
@@ -237,7 +237,7 @@ class CoconutTreesDetection:
         self.uiDockWidgetAnnotation.btnAddAnnotationNoncoco.clicked.connect(self.addAnnotationsNoncoco)
         self.uiDockWidgetAnnotation.btnDeleteAllAnnotation.clicked.connect(self.deleteAllAnnnotaions)
         self.uiDockWidgetAnnotation.btnVisualize.clicked.connect(self.tsneVisualization)
-        self.uiDockWidgetAnnotation.btnTest.clicked.connect(self.calReall)
+        self.uiDockWidgetAnnotation.btnTest.clicked.connect(self.calRecall)
         self.uiDockWidgetAnnotation.btnValidate.clicked.connect(self.validate)
 
 
@@ -399,45 +399,66 @@ class CoconutTreesDetection:
         start_time = time.time()
         # Generate sliding windows
         print "Start generating sliding windows..."
-        pixel_size_x = self.layer.rasterUnitsPerPixelX()
-        pixel_size_y = self.layer.rasterUnitsPerPixelY()
-        top_left_x = self.layer.extent().xMinimum()
-        top_left_y = self.layer.extent().yMaximum()
-        bottom_right_x = self.layer.extent().xMaximum()
-        bottom_right_y = self.layer.extent().yMinimum()
-        dim_x = int((bottom_right_x - top_left_x) / pixel_size_x)
-        dim_y = int((top_left_y - bottom_right_y) / pixel_size_y)
+        if not ((os.path.isfile(Parameters.testFeatures)) or
+                os.path.isfile(Parameters.testWindowCentersList)):
 
-        window_top_left_y = 0
-        window_bottom_right_y = 90
-        while window_bottom_right_y < dim_y - Parameters.samplePatchSize:
-            window_bottom_right_x = 90
-            window_top_left_x = 0
-            while (window_bottom_right_x < dim_x  - Parameters.samplePatchSize):
-                windowArray = self.imgArray[window_top_left_y : window_bottom_right_y,
-                              window_top_left_x : window_bottom_right_x, :]
-                self.windowArrayList.append(windowArray)
-                windowCenterTuple = ((window_top_left_x + Parameters.samplePatchSize/2),
-                               (window_top_left_y + Parameters.samplePatchSize/2))
-                self.windowsCentersList.append(windowCenterTuple)
-                window_top_left_x += Parameters.strideSize
-                window_bottom_right_x += Parameters.strideSize
-            window_top_left_y  += Parameters.strideSize
-            window_bottom_right_y += Parameters.strideSize
+            pixel_size_x = self.layer.rasterUnitsPerPixelX()
+            pixel_size_y = self.layer.rasterUnitsPerPixelY()
+            top_left_x = self.layer.extent().xMinimum()
+            top_left_y = self.layer.extent().yMaximum()
+            bottom_right_x = self.layer.extent().xMaximum()
+            bottom_right_y = self.layer.extent().yMinimum()
+            dim_x = int((bottom_right_x - top_left_x) / pixel_size_x)
+            dim_y = int((top_left_y - bottom_right_y) / pixel_size_y)
 
-        with open(os.path.join(Parameters.tempDir, 'proposalWindowCentersList.pkl'), 'w') as f:
-            pickle.dump(self.windowsCentersList, f)
+            window_top_left_y = 0
+            window_bottom_right_y = 90
+            while window_bottom_right_y < dim_y - Parameters.samplePatchSize:
+                window_bottom_right_x = 90
+                window_top_left_x = 0
+                while (window_bottom_right_x < dim_x  - Parameters.samplePatchSize):
+                    windowArray = self.imgArray[window_top_left_y : window_bottom_right_y,
+                                  window_top_left_x : window_bottom_right_x, :]
+                    self.windowArrayList.append(windowArray)
+                    windowCenterTuple = ((window_top_left_x + Parameters.samplePatchSize/2),
+                                   (window_top_left_y + Parameters.samplePatchSize/2))
+                    self.windowsCentersList.append(windowCenterTuple)
+                    window_top_left_x += Parameters.strideSize
+                    window_bottom_right_x += Parameters.strideSize
+                window_top_left_y  += Parameters.strideSize
+                window_bottom_right_y += Parameters.strideSize
 
-        print "All sliding windows created!"
-        timeGeneratingSlindingwindows = time.time()
-        print "Generating {0} sliding windows with stride size of {1} takes {2:.2f} seconds".format(len(self.windowArrayList), Parameters.strideSize, timeGeneratingSlindingwindows - start_time)
 
-        print "Extracting sliding windows features..."
-        self.bovwTestFeatures = extract_bovw_features(self.windowArrayList, self.codebook)[0]
-        print "All sliding window features extracted! "
-        # print "The number of {0} test features are created!".format(len(self.bovwTestFeatures))
-        timeExtractWindowFeatures = time.time()
-        print "Extracting features from all sliding windows takes {0:.2f} seconds".format(timeExtractWindowFeatures - timeGeneratingSlindingwindows)
+            with open(Parameters.testWindowCentersList, 'w') as f:
+                pickle.dump(self.windowsCentersList, f)
+            #
+            # with open(Parameters.testWindowArrayList, 'w') as f:
+            #     pickle.dump(self.windowArrayList, f)
+
+            print "All sliding windows created!"
+            timeGeneratingSlindingwindows = time.time()
+            print "Generating {0} sliding windows with stride size of {1} takes {2:.2f} seconds".format(len(self.windowArrayList), Parameters.strideSize, timeGeneratingSlindingwindows - start_time)
+
+            print "Extracting sliding windows features..."
+            self.bovwTestFeatures = extract_bovw_features(self.windowArrayList, self.codebook)[0]
+
+            with open(Parameters.testFeatures, 'w') as f:
+                pickle.dump(self.bovwTestFeatures, f)
+
+            print "All sliding window features extracted! "
+            timeExtractWindowFeatures = time.time()
+            print "Extracting features from all sliding windows takes {0:.2f} seconds".format(timeExtractWindowFeatures - timeGeneratingSlindingwindows)
+
+        else:
+            with open(Parameters.testWindowCentersList, 'r') as f:
+                self.windowsCentersList = pickle.load(f)
+
+            # with open(Parameters.testWindowArrayList, 'r') as f:
+            #     self.windowArrayList = pickle.load(f)
+
+            with open(Parameters.testFeatures, 'r') as f:
+                self.bovwTestFeatures = pickle.load(f)
+            # print "The number of {0} test features are created!".format(len(self.bovwTestFeatures))
 
     def classify(self):
         timeStart = time.time()
@@ -512,14 +533,14 @@ class CoconutTreesDetection:
             else:
                 self.windowPositiveIndexList.append(i)
 
-    def calReall(self):
+    def calRecall(self):
         """Calculate recall based on the confusion matrix."""
         distanceThreshold = 45 # unit: pixel
         countedWindowsIndexList = list()
         countedWindowsCentersList = list()
 
         # Load the ground truths
-        groundTruthCentersList = featurePoint2PixelPosition("cocotrees_clipped", "rgb_image_clipped")
+        groundTruthCentersList = featurePoint2PixelPosition(Parameters.groundTruthLayername, Parameters.rgb_image_layername)
         tpCounter = 0 # true positive counter
         fnCounter = 0 # false negative counter
         tnCounter = 0 # true negative counter
@@ -581,8 +602,8 @@ class CoconutTreesDetection:
         print "The recalll is {0} and the precision is {1} for distanceThreshold {2}".format(recall, precision,distanceThreshold)
 
 
-    def calReallValidation(self, windowsCentersList,
-                           windowNegativeIndexList, windowPositiveIndexList):
+    def calRecallValidation(self, windowsCentersList,
+                            windowNegativeIndexList, windowPositiveIndexList):
         """Calculate recall based on the confusion matrix."""
         distanceThreshold = 45 # unit: pixel
         countedWindowsIndexList = list()
@@ -651,6 +672,7 @@ class CoconutTreesDetection:
         print "Validation: The recalll is {0} and the precision is {1} for distanceThreshold {2}".format(recall, precision,distanceThreshold)
 
     def validate(self):
+        timeStart = time.time()
         imgArray = gdal.Open(Parameters.validationImage).ReadAsArray().astype(np.uint8)
         imgArray = np.transpose(imgArray, (1, 2, 0))
         layer = getLayerByName(Parameters.rgb_image_layername_validation)
@@ -665,6 +687,7 @@ class CoconutTreesDetection:
         bottom_right_y = layer.extent().yMinimum()
         dim_x = int((bottom_right_x - top_left_x) / pixel_size_x)
         dim_y = int((top_left_y - bottom_right_y) / pixel_size_y)
+
 
         window_top_left_y = 0
         window_bottom_right_y = 90
@@ -683,15 +706,27 @@ class CoconutTreesDetection:
             window_top_left_y += Parameters.strideSize
             window_bottom_right_y += Parameters.strideSize
 
-        ################################################
-        codebook = np.load(Parameters.codebookFileName)
+        # with open(Parameters.validationWindowCenterList, 'w') as f:
+        #     pickle.dump(windowsCentersList, f)
+        #
+        # with open(Parameters.validationWindowArrayList, 'w') as f:
+        #     pickle.dump(windowArrayList, f)
 
-        #################################################################
 
         print "Extracting sliding windows features..."
-        bovwTestFeatures = extract_bovw_features(windowArrayList, codebook)[0]
-        np.save(Parameters.validationFeatures, bovwTestFeatures)
+
         print "All sliding window features extracted! "
+
+        ################################################
+        if not os.path.isfile(Parameters.validationFeatures):
+            codebook = np.load(Parameters.codebookFileName)
+            bovwTestFeatures = extract_bovw_features(windowArrayList, codebook)[0]
+            np.save(Parameters.validationFeatures, bovwTestFeatures)
+            timeFeaturesCreated = time.time()
+            print "Time used for validation windows features extraction is {0}".format(timeFeaturesCreated - timeStart)
+        else:
+            bovwTestFeatures = np.load(Parameters.validationFeatures)
+        #################################################################
 
         # predict
         calibrated_svc = joblib.load(Parameters.trainedModelPath)
@@ -716,7 +751,7 @@ class CoconutTreesDetection:
 
         print len(windowPositiveIndexList), len(windowNegativeIndexList)
 
-        self.calReallValidation(windowsCentersList, windowNegativeIndexList, windowPositiveIndexList)
+        self.calRecallValidation(windowsCentersList, windowNegativeIndexList, windowPositiveIndexList)
         np.save(Parameters.predictionLabels_validation, predictedLabels)
         np.save(Parameters.predictionProbs_validation, predicted_probs)
 

@@ -25,9 +25,12 @@ def ssearch(img, para):
     # resize image
     newHeight = 200
     newWidth = int(im.shape[1] * 200 / im.shape[0])
-    im = cv2.resize(im, (newWidth, newHeight))
+    # im = cv2.resize(im, (newWidth, newHeight))
 
-    # create Selective Search Segmentation Object using default parameters
+
+    numShowRects = 150
+
+# create Selective Search Segmentation Object using default parameters
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
 
     # set input image on which we will run segmentation
@@ -45,11 +48,18 @@ def ssearch(img, para):
     rects = ss.process()
     print('Total Number of Region Proposals: {}'.format(len(rects)))
 
-    # itereate over all the region proposals
+
+    imOut = im.copy()
     for i, rect in enumerate(rects):
-        x, y, w, h = rect
-        proposals.append((x, y, w, h))
+        if (i < numShowRects):
+            x, y, w, h = rect
+            proposals.append((x, y, w, h))
+            cv2.rectangle(imOut, (x, y), (x + w, y + h), (0, 0, 255), 1, cv2.LINE_AA)
 
     print "SSearch finished!"
-    return proposals
 
+    cv2.imwrite("/Users/ping/Downloads/chop_0_ssearch.png", imOut)
+
+
+if __name__ == "__main__":
+    ssearch("/Users/ping/Downloads/chop_0.png", 'f')
