@@ -92,7 +92,10 @@ def featurePoint2PixelPosition(points_layer_name, raster_layer_name):
     top_left_y = raster_layer.extent().yMaximum()
     pixel_coords_list = []
     for feature in features_array:
-        point_crs_coord = feature.geometry().asPoint()
+        if feature.geometry().wkbType() == QgsWKBTypes.Point:
+            point_crs_coord = feature.geometry().asPoint()
+        else:
+            point_crs_coord = feature.geometry().asMultiPoint()[0]
         point_pixel_coords = (int(round((point_crs_coord.x() - top_left_x) / pixel_size_x)),
                               int(round((top_left_y - point_crs_coord.y()) / pixel_size_y)))
         pixel_coords_list.append(point_pixel_coords)
@@ -199,5 +202,5 @@ def calDistanceBetweenCenterTuple(center1, center2):
     """Calculate euclidistance between center tuples."""
     d1 = (center1[0] - center2[0])**2
     d2 = (center1[1] - center2[1])**2
-    d = math.sqrt(d1 + d2)
+    d = d1 + d2
     return d

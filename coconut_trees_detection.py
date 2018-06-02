@@ -384,21 +384,22 @@ class CoconutTreesDetection:
             self.codebook = np.load(Parameters.codebookFileName)
             print "Codebook loaded!"
 
-        if not os.path.exists(Parameters.testFeatures):
-            self.extractProposalFeaturesForPrediction()
-            np.save(Parameters.testFeatures, self.bovwTestFeatures)
-            timeEndPreprocessing = time.time()
-            print "The whole preprocessing takes {0: .2f} seconds!".format(timeEndPreprocessing - timeStart)
-        else:
-            with open(os.path.join(Parameters.tempDir, "proposalWindowCentersList.pkl"), 'r') as f:
-                self.windowsCentersList = pickle.load(f)
-            self.bovwTestFeatures = np.load(Parameters.testFeatures)
-            print "Test features loaded!"
+        # if not os.path.exists(Parameters.testFeatures):
+        self.extractProposalFeaturesForPrediction()
+            # np.save(Parameters.testFeatures, self.bovwTestFeatures)
+        timeEndPreprocessing = time.time()
+        print "The whole preprocessing takes {0: .2f} seconds!".format(timeEndPreprocessing - timeStart)
+        # else:
+        # with open(os.path.join(Parameters.tempDir, "proposalWindowCentersList.pkl"), 'r') as f:
+        #     self.windowsCentersList = pickle.load(f)
+        # self.bovwTestFeatures = np.load(Parameters.testFeatures)
+        print "Test features loaded!"
 
     def extractProposalFeaturesForPrediction(self):
         start_time = time.time()
         # Generate sliding windows
-        if not os.path.isfile(Parameters.testWindowCentersList):
+        if not (os.path.isfile(Parameters.testWindowCentersList) or
+            (os.path.isfile(Parameters.testFeatures))):
             pixel_size_x = self.layer.rasterUnitsPerPixelX()
             pixel_size_y = self.layer.rasterUnitsPerPixelY()
             top_left_x = self.layer.extent().xMinimum()
@@ -429,39 +430,38 @@ class CoconutTreesDetection:
             with open(Parameters.testWindowCentersList, 'w') as f:
                 pickle.dump(self.windowsCentersList, f)
             print "All window centers list created!"
+
+            self.bovwTestFeatures = extract_bovw_features(self.windowArrayList, self.codebook)[0]
+
+            with open(Parameters.testFeatures, 'w') as f:
+                pickle.dump(self.bovwTestFeatures, f)
             #
             # with open(Parameters.testWindowArrayList, 'w') as f:
             #     pickle.dump(self.windowArrayList, f)
 
             print "All  windows created!"
             timeGeneratingSlindingwindows = time.time()
-            print "Generating {0} sliding windows with stride size of {1} takes {2:.2f} seconds".format(len(self.windowArrayList), Parameters.strideSize, timeGeneratingSlindingwindows - start_time)
+            # print "Generating {0} sliding windows with stride size of {1} takes {2:.2f} seconds".format(len(self.windowArrayList), Parameters.strideSize, timeGeneratingSlindingwindows - start_time)
 
 
         else:
             with open(Parameters.testWindowCentersList, 'r') as f:
                 self.windowsCentersList = pickle.load(f)
+
+                self.bovwTestFeatures = np.load(Parameters.testFeatures)
+            print "Window bovw features loaded!"
+
             print "Window Centers List loaded!"
-
-        if not os.path.isfile(Parameters.testFeatures):
-
-            self.bovwTestFeatures = extract_bovw_features(self.windowArrayList, self.codebook)[0]
-
-            with open(Parameters.testFeatures, 'w') as f:
-                pickle.dump(self.bovwTestFeatures, f)
 
             print "All window bovw features extracted! "
             timeExtractWindowFeatures = time.time()
-            print "Extracting features from all sliding windows takes {0:.2f} seconds".format(timeExtractWindowFeatures - timeGeneratingSlindingwindows)
+            # print "Extracting features from all sliding windows takes {0:.2f} seconds".format(timeExtractWindowFeatures - timeGeneratingSlindingwindows)
 
 
 
             # with open(Parameters.testWindowArrayList, 'r') as f:
             #     self.windowArrayList = pickle.load(f)
-        else:
-            with open(Parameters.testFeatures, 'r') as f:
-                self.bovwTestFeatures = pickle.load(f)
-            print "Window bovw features loaded!"
+
 
     def classify(self):
         timeStart = time.time()
@@ -536,18 +536,89 @@ class CoconutTreesDetection:
             else:
                 self.windowPositiveIndexList.append(i)
 
+    # def calRecall(self):
+    #     """Calculate recall based on the confusion matrix."""
+    #     distanceThreshold = 45**2 # unit: pixel
+    #     countedWindowsIndexList = list()
+    #     countedWindowsCentersList = list()
+    #
+    #     # Load the ground truths
+    #     groundTruthCentersList = featurePoint2PixelPosition(Parameters.groundTruthLayername, Parameters.rgb_image_layername)
+    #     tpCounter = 0 # true positive counter
+    #     fnCounter = 0 # false negative counter
+    #     tnCounter = 0 # true negative counter
+    #     fpCounter = 0 # false positive counter
+    #
+    #     print len(groundTruthCentersList)
+    #     print len(self.windowsCentersList)
+    #     print len(self.windowNegativeIndexList), "Negative prediction"
+    #     print len(self.windowPositiveIndexList), "Positive prediction"
+    #
+    #     # True positive (TP) and False negative (FN):
+    #     for groundtruth in groundTruthCentersList:
+    #         found = False
+    #         for windowCenterIndex in self.windowPositiveIndexList:
+    #             distance = calDistanceBetweenCenterTuple(groundtruth, self.windowsCentersList[windowCenterIndex])
+    #             if distance <= distanceThreshold:
+    #                 tpCounter += 1
+    #                 found = True
+    #                 break
+    #         if not found:
+    #             fnCounter += 1
+    #     # True negative (TN) and False positive (FP):
+    #     for i,window in enumerate(self.windowsCentersList):
+    #         found = False
+    #         if (i in self.windowNegativeIndexList):
+    #             # for groundtruthCenter in groundTruthCentersList:
+    #             #     distance = calDistanceBetweenCenterTuple(groundtruthCenter, window)
+    #             #     if distance < distanceThreshold:
+    #             #         found = True
+    #             #         break
+    #             # if not found:
+    #             #     tnCounter += 1
+    #             pass
+    #         else:
+    #             # if i not in countedWindowsIndexList:
+    #             for groundtruthCenter in groundTruthCentersList:
+    #                 distance = calDistanceBetweenCenterTuple(groundtruthCenter, window)
+    #                 if distance <= distanceThreshold:
+    #                     found = True
+    #                     break
+    #             if found:
+    #                 continue
+    #
+    #             overlap = False
+    #             for countedWindow in countedWindowsCentersList:
+    #                 d = calDistanceBetweenCenterTuple(countedWindow, window)
+    #                 if d <= distanceThreshold:
+    #                     overlap = True
+    #                     break
+    #
+    #             if not overlap:
+    #                 countedWindowsIndexList.append(i)
+    #                 countedWindowsCentersList.append(window)
+    #                 fpCounter += 1
+    #
+    #     print "False positive, true positive, true negative, false negative:", fpCounter, tpCounter, tnCounter,fnCounter
+    #     recall = float(tpCounter)/(tpCounter + fnCounter)  * 100
+    #     precision = float(tpCounter)/(tpCounter + fpCounter) * 100
+    #     print "The recalll is {0} and the precision is {1} for distanceThreshold {2}".format(recall, precision,distanceThreshold)
+
     def calRecall(self):
         """Calculate recall based on the confusion matrix."""
-        distanceThreshold = 45 # unit: pixel
+        distanceThresholdSquare = 45**2  # unit: pixel
         countedWindowsIndexList = list()
         countedWindowsCentersList = list()
 
         # Load the ground truths
-        groundTruthCentersList = featurePoint2PixelPosition(Parameters.groundTruthLayername, Parameters.rgb_image_layername)
-        tpCounter = 0 # true positive counter
-        fnCounter = 0 # false negative counter
-        tnCounter = 0 # true negative counter
-        fpCounter = 0 # false positive counter
+        groundTruthCentersList = featurePoint2PixelPosition(Parameters.groundTruthLayername,
+                                                            Parameters.rgb_image_layername)
+        # print groundTruthCentersList
+        # print self.windowsCentersList
+        tpCounter = 0  # true positive counter
+        fnCounter = 0  # false negative counter
+        tnCounter = 0  # true negative counter
+        fpCounter = 0  # false positive counter
 
         print len(groundTruthCentersList)
         print len(self.windowsCentersList)
@@ -558,14 +629,16 @@ class CoconutTreesDetection:
         for groundtruth in groundTruthCentersList:
             found = False
             for windowCenterIndex in self.windowPositiveIndexList:
-                distance = calDistanceBetweenCenterTuple(groundtruth, self.windowsCentersList[windowCenterIndex])
-                if distance <= distanceThreshold:
+                distanceSquare = calDistanceBetweenCenterTuple(groundtruth, self.windowsCentersList[windowCenterIndex])
+                if distanceSquare <= distanceThresholdSquare:
                     tpCounter += 1
                     found = True
                     break
             if not found:
                 fnCounter += 1
+        print "proc... TP and FN ok"
         # True negative (TN) and False positive (FP):
+        """
         for i,window in enumerate(self.windowsCentersList):
             found = False
             if (i in self.windowNegativeIndexList):
@@ -598,26 +671,119 @@ class CoconutTreesDetection:
                     countedWindowsIndexList.append(i)
                     countedWindowsCentersList.append(window)
                     fpCounter += 1
+        """
 
-        print "False positive, true positive, true negative, false negative:", fpCounter, tpCounter, tnCounter,fnCounter
-        recall = float(tpCounter)/(tpCounter + fnCounter)  * 100
-        precision = float(tpCounter)/(tpCounter + fpCounter) * 100
-        print "The recalll is {0} and the precision is {1} for distanceThreshold {2}".format(recall, precision,distanceThreshold)
+        for windowCenterIndex in self.windowPositiveIndexList:
+            window = self.windowsCentersList[windowCenterIndex]
+            found = False
+            for groundtruthCenter in groundTruthCentersList:
+                distanceSquare = calDistanceBetweenCenterTuple(groundtruthCenter, window)
+                if distanceSquare <= distanceThresholdSquare:
+                    found = True
+                    break
+            if found:
+                continue
 
+            overlap = False
+            for countedWindow in countedWindowsCentersList:
+                distanceSquare = calDistanceBetweenCenterTuple(countedWindow, window)
+                if distanceSquare <= distanceThresholdSquare:
+                    overlap = True
+                    break
+
+            if not overlap:
+                # countedWindowsIndexList.append(i)
+                countedWindowsCentersList.append(window)
+                fpCounter += 1
+
+        print "False positive, true positive, true negative, false negative:", fpCounter, tpCounter, tnCounter, fnCounter
+        recall = float(tpCounter) / (tpCounter + fnCounter) * 100
+        precision = float(tpCounter) / (tpCounter + fpCounter) * 100
+        print "The recalll is {0} and the precision is {1} for distanceThreshold {2}".format(recall, precision,
+                                                                                             int(math.sqrt(distanceThresholdSquare)))
+    # def calRecallValidation(self, windowsCentersList,
+    #                         windowNegativeIndexList, windowPositiveIndexList):
+    #     """Calculate recall based on the confusion matrix."""
+    #     distanceThresholdSquare = 45 # unit: pixel
+    #     countedWindowsIndexList = list()
+    #     countedWindowsCentersList = list()
+    #
+    #     # Load the ground truths
+    #     groundTruthCentersList = featurePoint2PixelPosition(Parameters.groundTruthLayername_validation, Parameters.rgb_image_layername_validation)
+    #     tpCounter = 0 # true positive counter
+    #     fnCounter = 0 # false negative counter
+    #     tnCounter = 0 # true negative counter
+    #     fpCounter = 0 # false positive counter
+    #
+    #     print len(groundTruthCentersList)
+    #     print len(windowsCentersList)
+    #     print len(windowNegativeIndexList), "Negative prediction"
+    #     print len(windowPositiveIndexList), "Positive prediction"
+    #
+    #     # True positive (TP) and False negative (FN):
+    #     for groundtruth in groundTruthCentersList:
+    #         found = False
+    #         for windowCenterIndex in windowPositiveIndexList:
+    #             distanceSquare = calDistanceBetweenCenterTuple(groundtruth, windowsCentersList[windowCenterIndex])
+    #             if distanceSquare <= distanceThresholdSquare:
+    #                 tpCounter += 1
+    #                 found = True
+    #                 break
+    #         if not found:
+    #             fnCounter += 1
+    #     # True negative (TN) and False positive (FP):
+    #     for i,window in enumerate(windowsCentersList):
+    #         found = False
+    #         if (i in windowNegativeIndexList):
+    #             # for groundtruthCenter in groundTruthCentersList:
+    #             #     distance = calDistanceBetweenCenterTuple(groundtruthCenter, window)
+    #             #     if distance < distanceThreshold:
+    #             #         found = True
+    #             #         break
+    #             # if not found:
+    #             #     tnCounter += 1
+    #             pass
+    #         else:
+    #             # if i not in countedWindowsIndexList:
+    #             for groundtruthCenter in groundTruthCentersList:
+    #                 distanceSquare = calDistanceBetweenCenterTuple(groundtruthCenter, window)
+    #                 if distanceSquare <= distanceThresholdSquare:
+    #                     found = True
+    #                     break
+    #             if found:
+    #                 continue
+    #
+    #             overlap = False
+    #             for countedWindow in countedWindowsCentersList:
+    #                 distanceSquare = calDistanceBetweenCenterTuple(countedWindow, window)
+    #                 if distanceSquare <= distanceThresholdSquare:
+    #                     overlap = True
+    #                     break
+    #
+    #             if not overlap:
+    #                 countedWindowsIndexList.append(i)
+    #                 countedWindowsCentersList.append(window)
+    #                 fpCounter += 1
+    #
+    #     print "Validation: False positive, true positive, true negative, false negative:", fpCounter, tpCounter, tnCounter,fnCounter
+    #     recall = float(tpCounter)/(tpCounter + fnCounter)  * 100
+    #     precision = float(tpCounter)/(tpCounter + fpCounter) * 100
+    #     print "Validation: The recalll is {0} and the precision is {1} for distanceThreshold {2}".format(recall, precision,distanceThresholdSquare)
 
     def calRecallValidation(self, windowsCentersList,
                             windowNegativeIndexList, windowPositiveIndexList):
         """Calculate recall based on the confusion matrix."""
-        distanceThreshold = 45 # unit: pixel
+        distanceThresholdSquare = 45**2  # unit: pixel
         countedWindowsIndexList = list()
         countedWindowsCentersList = list()
 
         # Load the ground truths
-        groundTruthCentersList = featurePoint2PixelPosition(Parameters.groundTruthLayername_validation, Parameters.rgb_image_layername_validation)
-        tpCounter = 0 # true positive counter
-        fnCounter = 0 # false negative counter
-        tnCounter = 0 # true negative counter
-        fpCounter = 0 # false positive counter
+        groundTruthCentersList = featurePoint2PixelPosition(Parameters.groundTruthLayername_validation,
+                                                            Parameters.rgb_image_layername_validation)
+        tpCounter = 0  # true positive counter
+        fnCounter = 0  # false negative counter
+        tnCounter = 0  # true negative counter
+        fpCounter = 0  # false positive counter
 
         print len(groundTruthCentersList)
         print len(windowsCentersList)
@@ -628,14 +794,17 @@ class CoconutTreesDetection:
         for groundtruth in groundTruthCentersList:
             found = False
             for windowCenterIndex in windowPositiveIndexList:
-                distance = calDistanceBetweenCenterTuple(groundtruth, windowsCentersList[windowCenterIndex])
-                if distance <= distanceThreshold:
+                distanceSquare = calDistanceBetweenCenterTuple(groundtruth, windowsCentersList[windowCenterIndex])
+                if distanceSquare <= distanceThresholdSquare:
                     tpCounter += 1
                     found = True
                     break
             if not found:
                 fnCounter += 1
+
+        print "validation proc... TP and FN ok"
         # True negative (TN) and False positive (FP):
+        """
         for i,window in enumerate(windowsCentersList):
             found = False
             if (i in windowNegativeIndexList):
@@ -668,12 +837,38 @@ class CoconutTreesDetection:
                     countedWindowsIndexList.append(i)
                     countedWindowsCentersList.append(window)
                     fpCounter += 1
+        """
 
-        print "Validation: False positive, true positive, true negative, false negative:", fpCounter, tpCounter, tnCounter,fnCounter
-        recall = float(tpCounter)/(tpCounter + fnCounter)  * 100
-        precision = float(tpCounter)/(tpCounter + fpCounter) * 100
-        print "Validation: The recalll is {0} and the precision is {1} for distanceThreshold {2}".format(recall, precision,distanceThreshold)
+        for windowCenterIndex in windowPositiveIndexList:
+            window = windowsCentersList[windowCenterIndex]
+            found = False
 
+            for groundtruthCenter in groundTruthCentersList:
+                distanceSquare = calDistanceBetweenCenterTuple(groundtruthCenter, window)
+                if distanceSquare <= distanceThresholdSquare:
+                    found = True
+                    break
+            if found:
+                continue
+
+            overlap = False
+            for countedWindow in countedWindowsCentersList:
+                dSauare = calDistanceBetweenCenterTuple(countedWindow, window)
+                if dSauare <= distanceThresholdSquare:
+                    overlap = True
+                    break
+
+            if not overlap:
+                # countedWindowsIndexList.append(i)
+                countedWindowsCentersList.append(window)
+                fpCounter += 1
+
+        print "Validation: False positive, true positive, true negative, false negative:", fpCounter, tpCounter, tnCounter, fnCounter
+        recall = float(tpCounter) / (tpCounter + fnCounter) * 100
+        precision = float(tpCounter) / (tpCounter + fpCounter) * 100
+        print "Validation: The recalll is {0} and the precision is {1} for distanceThreshold {2}".format(recall,
+                                                                                                         precision,
+                                                                                                         int(math.sqrt(distanceThresholdSquare)))
     def validate(self):
         timeStart = time.time()
         imgArray = gdal.Open(Parameters.validationImage).ReadAsArray().astype(np.uint8)
