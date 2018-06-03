@@ -6,7 +6,8 @@ class Parameters:
     samplePatchSize = 90
     maskPatchSize = 90*2
     strideSize = 15
-    bovwCodebookNrRandomSamples = 500
+    bovwCodebookNrRandomSamples = 1000
+    recallDistanceSquare = 35
     cocoVecLayer = "coconutTrees"
     rgbImage = os.path.join(dataPath, "rgb_image.tif")
     rgb_image_clipped_png = "/Users/ping/Documents/thesis/data/result/rgb_image_clipped.png"
@@ -61,6 +62,8 @@ class Parameters:
     predictionProbs = os.path.join(tempDir, "split2/predicted_probs.npy")
     rstClassPathext = os.path.join(tempDir, "split2/resultClassification_map_summed_up_probs.tif")
     trainedModelPath = os.path.join(tempDir, 'split2/trainedModel.pkl')
+
+    # Copy and move
     annotationCocoFile = os.path.join(tempDir, "split2/annotationCoco.pkl")
     annotationNoncocoFile = os.path.join(tempDir, "split2/annotationNoncoco.pkl")
 
@@ -70,22 +73,20 @@ class Parameters:
     rgb_image_clipped_tif = os.path.join(tempDir, "split2/rgb_image_split2.tif")
     testFeatures = os.path.join(tempDir, "split2/testFeatures.npy")
     testWindowCentersList = os.path.join(tempDir, 'split2/testWindowCenterlist.pkl')
-    testWindowArrayList = os.path.join(tempDir, 'split2/testWindowArrayList.pkl')
     # and ground truths shapefile
 
     #For all different images
     codebookFileName = os.path.join(tempDir, "codebook.npy")
 
     # Validation
-    validationImage = os.path.join(tempDir, "validation/rgb_image_clipped.tif")
-    rstClassPathextValidation = os.path.join(tempDir, "validation/validationClassification_map_summed_up_probs_split2.tif")
-    rgb_image_layername_validation = "rgb_image_clipped"
-    groundTruthLayername_validation = "cocotrees_clipped"
+    validationImage = os.path.join(tempDir, "validation/rgb_image_split1.tif")
+    rstClassPathextValidation = os.path.join(tempDir, "validation/validationClassification_map_summed_up_probs_split1.tif")
+    rgb_image_layername_validation = "rgb_image_split1"
+    groundTruthLayername_validation = "coconut_split1"
     predictionLabels_validation = os.path.join(tempDir, "validation/test_labels.npy")
     predictionProbs_validation = os.path.join(tempDir, "validation/predicted_probs.npy")
     validationFeatures = os.path.join(tempDir, 'validation/validationFeatures.npy')
     validationWindowCenterList = os.path.join(tempDir, 'validation/validationWindowCenterList.pkl')
-    validationWindowArrayList = os.path.join(tempDir, 'validation/validationWindowArrayList.pkl')
 
 
     def __init__(self, layer):

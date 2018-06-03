@@ -389,16 +389,12 @@ class CoconutTreesDetection:
             # np.save(Parameters.testFeatures, self.bovwTestFeatures)
         timeEndPreprocessing = time.time()
         print "The whole preprocessing takes {0: .2f} seconds!".format(timeEndPreprocessing - timeStart)
-        # else:
-        # with open(os.path.join(Parameters.tempDir, "proposalWindowCentersList.pkl"), 'r') as f:
-        #     self.windowsCentersList = pickle.load(f)
-        # self.bovwTestFeatures = np.load(Parameters.testFeatures)
         print "Test features loaded!"
 
     def extractProposalFeaturesForPrediction(self):
         start_time = time.time()
         # Generate sliding windows
-        if not (os.path.isfile(Parameters.testWindowCentersList) or
+        if not (os.path.isfile(Parameters.testWindowCentersList) and
             (os.path.isfile(Parameters.testFeatures))):
             pixel_size_x = self.layer.rasterUnitsPerPixelX()
             pixel_size_y = self.layer.rasterUnitsPerPixelY()
@@ -484,13 +480,13 @@ class CoconutTreesDetection:
 
         print "Number of training samples are {0}, with {1} Coco and {2} Non_coco!"\
             .format(len(self.bovwTrainingFeatures), len(bovwTrainingCocoFeatures), len(bovwTrainingNoncocoFeatures))
-        c_tuned = linearSVM_grid_search(self.bovwTrainingFeatures, self.labelTrainingArray)
         timeTuningCparameter = time.time()
-        print "Tuned C parameter is {0}".format(c_tuned)
         print "Tuning C parameter for the SVM takes {0:.2f} seconds".format(timeTuningCparameter - timeExtractTrainingFeatures)
 
         # Only train the new model when the model file is not exists on the disk
         if not os.path.isfile(Parameters.trainedModelPath):
+            c_tuned = linearSVM_grid_search(self.bovwTrainingFeatures, self.labelTrainingArray)
+            print "Tuned C parameter is {0}".format(c_tuned)
             linear_svm_classifier = svm.LinearSVC(C = c_tuned)
 
             calibrated_svc = CalibratedClassifierCV(linear_svm_classifier)
@@ -606,7 +602,7 @@ class CoconutTreesDetection:
 
     def calRecall(self):
         """Calculate recall based on the confusion matrix."""
-        distanceThresholdSquare = 45**2  # unit: pixel
+        distanceThresholdSquare = Parameters.recallDistanceSquare**2  # unit: pixel
         countedWindowsIndexList = list()
         countedWindowsCentersList = list()
 
@@ -773,7 +769,7 @@ class CoconutTreesDetection:
     def calRecallValidation(self, windowsCentersList,
                             windowNegativeIndexList, windowPositiveIndexList):
         """Calculate recall based on the confusion matrix."""
-        distanceThresholdSquare = 45**2  # unit: pixel
+        distanceThresholdSquare = Parameters.recallDistanceSquare**2  # unit: pixel
         countedWindowsIndexList = list()
         countedWindowsCentersList = list()
 
@@ -784,11 +780,6 @@ class CoconutTreesDetection:
         fnCounter = 0  # false negative counter
         tnCounter = 0  # true negative counter
         fpCounter = 0  # false positive counter
-
-        print len(groundTruthCentersList)
-        print len(windowsCentersList)
-        print len(windowNegativeIndexList), "Negative prediction"
-        print len(windowPositiveIndexList), "Positive prediction"
 
         # True positive (TP) and False negative (FN):
         for groundtruth in groundTruthCentersList:
@@ -801,43 +792,6 @@ class CoconutTreesDetection:
                     break
             if not found:
                 fnCounter += 1
-
-        print "validation proc... TP and FN ok"
-        # True negative (TN) and False positive (FP):
-        """
-        for i,window in enumerate(windowsCentersList):
-            found = False
-            if (i in windowNegativeIndexList):
-                # for groundtruthCenter in groundTruthCentersList:
-                #     distance = calDistanceBetweenCenterTuple(groundtruthCenter, window)
-                #     if distance < distanceThreshold:
-                #         found = True
-                #         break
-                # if not found:
-                #     tnCounter += 1
-                pass
-            else:
-                # if i not in countedWindowsIndexList:
-                for groundtruthCenter in groundTruthCentersList:
-                    distance = calDistanceBetweenCenterTuple(groundtruthCenter, window)
-                    if distance <= distanceThreshold:
-                        found = True
-                        break
-                if found:
-                    continue
-
-                overlap = False
-                for countedWindow in countedWindowsCentersList:
-                    d = calDistanceBetweenCenterTuple(countedWindow, window)
-                    if d <= distanceThreshold:
-                        overlap = True
-                        break
-
-                if not overlap:
-                    countedWindowsIndexList.append(i)
-                    countedWindowsCentersList.append(window)
-                    fpCounter += 1
-        """
 
         for windowCenterIndex in windowPositiveIndexList:
             window = windowsCentersList[windowCenterIndex]
@@ -886,44 +840,40 @@ class CoconutTreesDetection:
         dim_x = int((bottom_right_x - top_left_x) / pixel_size_x)
         dim_y = int((top_left_y - bottom_right_y) / pixel_size_y)
 
+        codebook = np.load(Parameters.codebookFileName)
 
         window_top_left_y = 0
         window_bottom_right_y = 90
-        while window_bottom_right_y < dim_y - Parameters.samplePatchSize:
-            window_bottom_right_x = 90
-            window_top_left_x = 0
-            while (window_bottom_right_x < dim_x - Parameters.samplePatchSize):
-                windowArray = imgArray[window_top_left_y: window_bottom_right_y,
-                              window_top_left_x: window_bottom_right_x, :]
-                windowArrayList.append(windowArray)
-                windowCenterTuple = ((window_top_left_x + Parameters.samplePatchSize / 2),
-                                     (window_top_left_y + Parameters.samplePatchSize / 2))
-                windowsCentersList.append(windowCenterTuple)
-                window_top_left_x += Parameters.strideSize
-                window_bottom_right_x += Parameters.strideSize
-            window_top_left_y += Parameters.strideSize
-            window_bottom_right_y += Parameters.strideSize
+        if not (os.path.isfile(Parameters.validationWindowCenterList)
+        and os.path.isfile(Parameters.validationFeatures)):
+            while window_bottom_right_y < dim_y - Parameters.samplePatchSize:
+                window_bottom_right_x = 90
+                window_top_left_x = 0
+                while (window_bottom_right_x < dim_x - Parameters.samplePatchSize):
+                    windowArray = imgArray[window_top_left_y: window_bottom_right_y,
+                                  window_top_left_x: window_bottom_right_x, :]
+                    windowArrayList.append(windowArray)
+                    windowCenterTuple = ((window_top_left_x + Parameters.samplePatchSize / 2),
+                                         (window_top_left_y + Parameters.samplePatchSize / 2))
+                    windowsCentersList.append(windowCenterTuple)
+                    window_top_left_x += Parameters.strideSize
+                    window_bottom_right_x += Parameters.strideSize
+                window_top_left_y += Parameters.strideSize
+                window_bottom_right_y += Parameters.strideSize
 
-        # with open(Parameters.validationWindowCenterList, 'w') as f:
-        #     pickle.dump(windowsCentersList, f)
-        #
-        # with open(Parameters.validationWindowArrayList, 'w') as f:
-        #     pickle.dump(windowArrayList, f)
-
-
-        print "Extracting sliding windows features..."
-
-        print "All sliding window features extracted! "
+            with open(Parameters.validationWindowCenterList, 'w') as f:
+                pickle.dump(windowsCentersList, f)
 
         ################################################
-        if not os.path.isfile(Parameters.validationFeatures):
-            codebook = np.load(Parameters.codebookFileName)
             bovwTestFeatures = extract_bovw_features(windowArrayList, codebook)[0]
             np.save(Parameters.validationFeatures, bovwTestFeatures)
             timeFeaturesCreated = time.time()
-            print "Time used for validation windows features extraction is {0}".format(timeFeaturesCreated - timeStart)
+            print "windows centers list and bow feautures extracted!"
         else:
             bovwTestFeatures = np.load(Parameters.validationFeatures)
+            with open(Parameters.validationWindowCenterList, 'r') as f:
+                windowsCentersList = pickle.load(f)
+            print "windows center list and bow features loaded!"
         #################################################################
 
         # predict
@@ -946,9 +896,6 @@ class CoconutTreesDetection:
                 windowNegativeIndexList.append(i)
             else:
                 windowPositiveIndexList.append(i)
-
-        print len(windowPositiveIndexList), len(windowNegativeIndexList)
-
         self.calRecallValidation(windowsCentersList, windowNegativeIndexList, windowPositiveIndexList)
         np.save(Parameters.predictionLabels_validation, predictedLabels)
         np.save(Parameters.predictionProbs_validation, predicted_probs)
