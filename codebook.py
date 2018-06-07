@@ -130,10 +130,10 @@ def main():
 
 ### SURF
 	# 200 Codebook SURF
-	python codebook.py /Users/ping/thesis/data/patchImages/lower/all/ 200 fast_st_kmeans /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook200.npy
-	python bovw.py /Users/ping/thesis/data/patchImages/lower/all/ /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook200.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_lower_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_lower_labels.npy
-	python bovw.py /Users/ping/thesis/data/patchImages/upper/all/ /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook200.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_labels.npy
-	python classifyImagePatches.py /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_lower_labels.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_labels.npy linear_svm
+	python codebook.py /Users/ping/thesis/data/patchImages/lower/all/ 200 fast_st_kmeans /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook200_surf.npy
+	python bovw.py /Users/ping/thesis/data/patchImages/lower/all/ /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook200_surf.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_lower_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_lower_labels.npy
+	python bovw.py /Users/ping/thesis/data/patchImages/upper/all/ /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook200_surf.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_labels.npy
+	python classifyImagePatches.py /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_lower_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_lower_labels.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_features.npy /Users/ping/thesis/data/featureDescriptors/bow_features/bow_surf_upper_labels.npy rf
 
 	# 100 Codebook SURF
 	python codebook.py /Users/ping/thesis/data/patchImages/lower/all/ 100 fast_st_kmeans /Users/ping/thesis/data/featureDescriptors/codebook/stkmeans_codebook100_surf.npy

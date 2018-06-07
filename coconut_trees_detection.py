@@ -487,7 +487,7 @@ class CoconutTreesDetection:
         if not os.path.isfile(Parameters.trainedModelPath):
             c_tuned = linearSVM_grid_search(self.bovwTrainingFeatures, self.labelTrainingArray)
             print "Tuned C parameter is {0}".format(c_tuned)
-            linear_svm_classifier = svm.LinearSVC(C = c_tuned)
+            linear_svm_classifier = svm.LinearSVC(C = c_tuned, random_state = 10)
 
             calibrated_svc = CalibratedClassifierCV(linear_svm_classifier)
             calibrated_svc.fit(self.bovwTrainingFeatures, self.labelTrainingArray)

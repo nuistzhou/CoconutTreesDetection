@@ -9,15 +9,15 @@ def extract_local_descriptors(img_dir):
     # set descriptor method
     # desc_method = cv2.SURF(1000)
 
-    desc_method = cv2.xfeatures2d.SIFT_create()
-    # desc_method = cv2.xfeatures2d.SURF_create(400, extended=True)
+    # desc_method = cv2.xfeatures2d.SIFT_create()
+    desc_method = cv2.xfeatures2d.SURF_create(400, extended=True)
 
     # get image filenames inside the image directory input
     img_files = [ f for f in os.listdir(img_dir)]
     img_files.sort()
 
-    # Dense sift with block size of 5 pixels
-    step_size = 5
+    # Dense sift with block size of 15 pixels
+    step_size = 15
 
     for img_file in img_files:
         arr_filename = img_file.split('_') # asuming that the format is class_imagenumber.jpg

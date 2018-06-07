@@ -189,8 +189,8 @@ def main(train_dataset_filename, train_labels_filename,
     f.close()
 
 if __name__ == '__main__':
-    main("hog_lower_features.npy", "hog_lower_labels.npy", "hog_upper_features.npy",
-         "hog_upper_labels.npy", 'svm')
+    # main("hog_lower_features.npy", "hog_lower_labels.npy", "hog_upper_features.npy",
+    #      "hog_upper_labels.npy", 'svm')
     # main("sift_lower_features.npy", "sift_lower_labels.npy", "sift_upper_features.npy",
     #      "sift_upper_labels.npy", 'svm')
     # main("surf_lower_features.npy", "surf_lower_labels.npy", "surf_upper_features.npy",
@@ -215,3 +215,6 @@ if __name__ == '__main__':
     # #
     # main("bow200_sift_lower_features.npy", "bow200_sift_lower_labels.npy", "bow200_sift_upper_features.npy",
     #      "bow200_sift_upper_labels.npy", "rf")
+
+    main("bow_surf_lower_features.npy", "bow_surf_lower_labels.npy", "bow_surf_upper_features.npy",
+         "bow_surf_upper_labels.npy", "rf")
