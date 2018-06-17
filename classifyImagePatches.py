@@ -111,15 +111,15 @@ def main(train_dataset_filename, train_labels_filename,
     performance_test_file_path = os.path.join(Parameters.performanceTestDir,performance_test_filename)
     f = open(performance_test_file_path, 'w')
 
-    # train_dataset_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, train_dataset_filename)
-    # train_labels_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, train_labels_filename)
-    # test_dataset_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, test_dataset_filename)
-    # test_labels_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, test_labels_filename)
+    train_dataset_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, train_dataset_filename)
+    train_labels_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, train_labels_filename)
+    test_dataset_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, test_dataset_filename)
+    test_labels_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, test_labels_filename)
 
-    train_dataset_filename = os.path.join(Parameters.bowFeatureDescriptorPath, train_dataset_filename)
-    train_labels_filename = os.path.join(Parameters.bowFeatureDescriptorPath, train_labels_filename)
-    test_dataset_filename = os.path.join(Parameters.bowFeatureDescriptorPath, test_dataset_filename)
-    test_labels_filename = os.path.join(Parameters.bowFeatureDescriptorPath, test_labels_filename)
+    # train_dataset_filename = os.path.join(Parameters.bowFeatureDescriptorPath, train_dataset_filename)
+    # train_labels_filename = os.path.join(Parameters.bowFeatureDescriptorPath, train_labels_filename)
+    # test_dataset_filename = os.path.join(Parameters.bowFeatureDescriptorPath, test_dataset_filename)
+    # test_labels_filename = os.path.join(Parameters.bowFeatureDescriptorPath, test_labels_filename)
 
 
 
@@ -216,5 +216,15 @@ if __name__ == '__main__':
     # main("bow200_sift_lower_features.npy", "bow200_sift_lower_labels.npy", "bow200_sift_upper_features.npy",
     #      "bow200_sift_upper_labels.npy", "rf")
 
-    main("bow_surf_lower_features.npy", "bow_surf_lower_labels.npy", "bow_surf_upper_features.npy",
-         "bow_surf_upper_labels.npy", "rf")
+    # main("bow_surf_lower_features.npy", "bow_surf_lower_labels.npy", "bow_surf_upper_features.npy",
+    #      "bow_surf_upper_labels.npy", "rf")
+    # main("bow200_sift_lower_features.npy", "bow200_sift_lower_labels.npy", "bow200_sift_upper_features.npy",
+    #          "bow200_sift_upper_labels.npy", "rf")
+    # main("bow_surf_lower_features.npy", "bow_surf_lower_labels.npy", "bow_surf_upper_features.npy",
+    #      "bow_surf_upper_labels.npy", "svm_rbf")
+    # main("hog_lower_features.npy", "hog_lower_labels.npy", "hog_upper_features.npy",
+    #  "hog_upper_labels.npy", 'rf')
+    # main("sift_lower_features.npy", "sift_lower_labels.npy", "sift_upper_features.npy",
+    #      "sift_upper_labels.npy", 'rf')
+    main("surf_lower_features.npy", "surf_lower_labels.npy", "surf_upper_features.npy",
+         "surf_upper_labels.npy", 'rf')
