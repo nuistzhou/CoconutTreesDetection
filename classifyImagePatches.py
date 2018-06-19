@@ -111,15 +111,15 @@ def main(train_dataset_filename, train_labels_filename,
     performance_test_file_path = os.path.join(Parameters.performanceTestDir,performance_test_filename)
     f = open(performance_test_file_path, 'w')
 
-    train_dataset_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, train_dataset_filename)
-    train_labels_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, train_labels_filename)
-    test_dataset_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, test_dataset_filename)
-    test_labels_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, test_labels_filename)
+    # train_dataset_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, train_dataset_filename)
+    # train_labels_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, train_labels_filename)
+    # test_dataset_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, test_dataset_filename)
+    # test_labels_filename = os.path.join(Parameters.mergedFeatureDescriptorPath, test_labels_filename)
 
-    # train_dataset_filename = os.path.join(Parameters.bowFeatureDescriptorPath, train_dataset_filename)
-    # train_labels_filename = os.path.join(Parameters.bowFeatureDescriptorPath, train_labels_filename)
-    # test_dataset_filename = os.path.join(Parameters.bowFeatureDescriptorPath, test_dataset_filename)
-    # test_labels_filename = os.path.join(Parameters.bowFeatureDescriptorPath, test_labels_filename)
+    train_dataset_filename = os.path.join(Parameters.bowFeatureDescriptorPath, train_dataset_filename)
+    train_labels_filename = os.path.join(Parameters.bowFeatureDescriptorPath, train_labels_filename)
+    test_dataset_filename = os.path.join(Parameters.bowFeatureDescriptorPath, test_dataset_filename)
+    test_labels_filename = os.path.join(Parameters.bowFeatureDescriptorPath, test_labels_filename)
 
 
 
@@ -136,7 +136,7 @@ def main(train_dataset_filename, train_labels_filename,
     print "Read dataset Ok"
     print "Working on the {0} method for descriptor {1}".format(classifier, descriptor_name)
 
-    time_ini = time.clock()
+    time_train_start = time.time()
 
     # create classifier object
     cls = None
@@ -157,16 +157,18 @@ def main(train_dataset_filename, train_labels_filename,
 
     # train classifier
     cls.fit(train_data, train_labels)
-    time_sec = (time.clock() - time_ini)
-    print "time train {}".format(time_sec)
+    time_train_end = time.time()
+    print "Train time is {}".format(time_train_end - time_train_start)
 
     # predict labels of test samples
-    time_ini = time.clock()
+    time_predict_start = time.time()
 
     pred_test_labels = cls.predict(test_data)
 
-    time_sec = (time.clock() - time_ini)
-    print "time classification {}".format(time_sec)
+    time_predict_end = time.time()
+    print "Prediction time is {}".format(time_predict_end - time_predict_start)
+
+    print "Total amount of time is {0}".format(time_predict_end - time_train_start)
 
     precision, recall, fscore, support =  precision_recall_fscore_support(test_labels ,pred_test_labels)
     print "Fscore {}".format(fscore[1])
@@ -224,7 +226,12 @@ if __name__ == '__main__':
     #      "bow_surf_upper_labels.npy", "svm_rbf")
     # main("hog_lower_features.npy", "hog_lower_labels.npy", "hog_upper_features.npy",
     #  "hog_upper_labels.npy", 'rf')
-    # main("sift_lower_features.npy", "sift_lower_labels.npy", "sift_upper_features.npy",
-    #      "sift_upper_labels.npy", 'rf')
-    main("surf_lower_features.npy", "surf_lower_labels.npy", "surf_upper_features.npy",
-         "surf_upper_labels.npy", 'rf')
+
+    # start = time.time()
+    main("bow_sift_lower_features.npy", "bow_sift_lower_labels.npy", "bow_sift_upper_features.npy",
+         "bow_sift_upper_labels.npy", 'svm')
+
+
+    # end = time.time()
+    # time_cost = end - start
+    # print "{0} seconds were used in total!".format(time_cost)
