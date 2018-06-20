@@ -3,11 +3,5 @@
 *Ping Zhou*     
 *Geographical Information @ Wageningen University & Research Centre*
 
-
-*26th - 29th Mar*
-1. Create the trees (coconut & non_coco) mask--- *Done*
-2. Get random samples by using the trees mask
-3. After have all trees and non trees samples, try different feature
-descriptors ((SURF, SIFT, HOG, BoVW)) and classifiers (Random Forest,
-SVM), and evaluate the currency based on the validation dataset 
-created in the first 2 steps.
+A QGIS plug-in to let the user annotate training samples, 
+train classifier and detect coconut trees from a high resolution aerial image.
